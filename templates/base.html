@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+        MERCOPLACAS
+        {% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+</head>
+
+<body>
+
+{% if session.get("logado") %}
+
+<div class="sistema">
+
+    <!-- MENU LATERAL -->
+    <aside class="sidebar" id="sidebar">
+
+        <div class="logo-area">
+            <div class="logo-icon">🚘</div>
+
+            <div class="logo-text">
+                <strong>MERCOPLACAS</strong>
+                <span>Gestão de placas</span>
+            </div>
+        </div>
+
+        <div class="menu-titulo">
+            PRINCIPAL
+        </div>
+
+        <nav class="menu">
+
+            {% if session.get("usuario_perfil") == "Administrador" %}
+            <a
+                href="{{ url_for('dashboard') }}"
+                class="menu-item {% if request.endpoint == 'dashboard' %}ativo{% endif %}"
+            >
+                <span class="menu-icon">⌂</span>
+                <span>Dashboard</span>
+            </a>
+            {% endif %}
+
+            <a
+                href="{{ url_for('vendas') }}"
+                class="menu-item {% if request.endpoint in ['vendas', 'editar_venda_rota'] %}ativo{% endif %}"
+            >
+                <span class="menu-icon">▣</span>
+                <span>Vendas</span>
+            </a>
+
+            <a
+                href="{{ url_for('clientes') }}"
+                class="menu-item {% if request.endpoint in ['clientes', 'editar_cliente_rota'] %}ativo{% endif %}"
+            >
+                <span class="menu-icon">♙</span>
+                <span>Clientes</span>
+            </a>
+
+            <a
+                href="{{ url_for('despachantes') }}"
+                class="menu-item {% if request.endpoint == 'despachantes' %}ativo{% endif %}"
+            >
+                <span class="menu-icon">♙</span>
+                <span>Despachantes</span>
+            </a>
+
+            <a
+                href="{{ url_for('estoque') }}"
+                class="menu-item {% if request.endpoint == 'estoque' %}ativo{% endif %}"
+            >
+                <span class="menu-icon">▦</span>
+                <span>Estoque</span>
+            </a>
+
+            <a
+                href="{{ url_for('gastos') }}"
+                class="menu-item {% if request.endpoint == 'gastos' %}ativo{% endif %}"
+            >
+                <span class="menu-icon">▾</span>
+                <span>Gastos</span>
+            </a>
+
+            {% if session.get("usuario_perfil") == "Administrador" %}
+
+            <a
+                href="{{ url_for('caixa') }}"
+                class="menu-item {% if request.endpoint == 'caixa' %}ativo{% endif %}"
+            >
+                <span class="menu-icon">▤</span>
+                <span>Caixa</span>
+            </a>
+
+            <a
+                href="{{ url_for('relatorios') }}"
+                class="menu-item {% if request.endpoint == 'relatorios' %}ativo{% endif %}"
+            >
+                <span class="menu-icon">▥</span>
+                <span>Relatórios</span>
+            </a>
+
+            <a
+                href="{{ url_for('usuarios') }}"
+                class="menu-item {% if request.endpoint == 'usuarios' %}ativo{% endif %}"
+            >
+                <span class="menu-icon">♙</span>
+                <span>Usuários</span>
+            </a>
+
+            {% endif %}
+
+        </nav>
+
+        <!-- BOTÃO SAIR -->
+        <div class="sidebar-final">
+
+            <a
+                href="{{ url_for('logout') }}"
+                class="menu-item sair"
+                onclick="return confirmarSaida()"
+            >
+                <span class="menu-icon">⇥</span>
+                <span>Sair do sistema</span>
+            </a>
+
+        </div>
+
+    </aside>
+
+
+    <!-- ÁREA PRINCIPAL -->
+    <main class="conteudo-principal">
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+
+            <button
+                type="button"
+                class="botao-menu-mobile"
+                onclick="alternarMenu()"
+            >
+                ☰
+            </button>
+
+            <div class="topbar-titulo">
+                <span>SISTEMA DE GESTÃO</span>
+                <strong>MERCOPLACAS</strong>
+            </div>
+
+            <div class="topbar-direita">
+
+                <div class="status-sistema">
+                    <span class="status-bolinha"></span>
+                    Online
+                </div>
+
+                <div class="usuario">
+
+                    <div class="usuario-avatar">
+                        {{ (session.get("usuario_nome") or "U")[0]|upper }}
+                    </div>
+
+                    <div class="usuario-info">
+
+                        <strong>
+                            {{ session.get("usuario_nome") or "Usuário" }}
+                        </strong>
+
+                        <span>
+                            {{ session.get("usuario_perfil") or "Usuário" }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- MENSAGENS -->
+        {% with mensagens = get_flashed_messages(with_categories=true) %}
+
+            {% if mensagens %}
+
+                <div class="mensagens">
+
+                    {% for categoria, mensagem in mensagens %}
+
+                        <div
+                            class="mensagem
+                            {% if categoria == 'erro' %}
+                                mensagem-erro
+                            {% else %}
+                                mensagem-sucesso
+                            {% endif %}"
+                        >
+
+                            <span>
+                                {% if categoria == 'erro' %}
+                                    ⚠
+                                {% else %}
+                                    ✓
+                                {% endif %}
+                            </span>
+
+                            {{ mensagem }}
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        <!-- CONTEÚDO -->
+        <section class="area-conteudo">
+
+            {% block content %}
+            {% endblock %}
+
+        </section>
+
+
+        <!-- RODAPÉ -->
+        <footer class="rodape">
+
+            <span>
+                © 2026 MERCOPLACAS
+            </span>
+
+            <span>
+                Sistema de Gestão • Campo Belo - MG
+            </span>
+
+        </footer>
+
+    </main>
+
+</div>
+
+{% else %}
+
+{% block login_content %}
+{% endblock %}
+
+{% endif %}
+
+
+<script>
+
+function alternarMenu() {
+
+    const sidebar = document.getElementById("sidebar");
+
+    if (sidebar) {
+        sidebar.classList.toggle("aberto");
+    }
+
+}
+
+
+function confirmarSaida() {
+
+    return confirm(
+        "Deseja realmente sair do sistema?"
+    );
+
+}
+
+
+document.addEventListener("click", function(event) {
+
+    const sidebar = document.getElementById("sidebar");
+    const botao = document.querySelector(".botao-menu-mobile");
+
+    if (!sidebar || !botao) {
+        return;
+    }
+
+    if (
+        window.innerWidth <= 900 &&
+        sidebar.classList.contains("aberto") &&
+        !sidebar.contains(event.target) &&
+        !botao.contains(event.target)
+    ) {
+
+        sidebar.classList.remove("aberto");
+
+    }
+
+});
+
+
+setTimeout(function() {
+
+    document.querySelectorAll(".mensagem").forEach(function(mensagem) {
+
+        mensagem.classList.add("mensagem-saindo");
+
+        setTimeout(function() {
+
+            if (mensagem) {
+                mensagem.remove();
+            }
+
+        }, 500);
+
+    });
+
+}, 5000);
+
+</script>
+
+</body>
+</html>

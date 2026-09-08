@@ -1,0 +1,853 @@
+{% extends "base.html" %}
+
+{% block title %}Vendas - Mercoplacas{% endblock %}
+
+{% block content %}
+
+<div class="pagina-vendas">
+
+    <!-- CABEÇALHO -->
+    <div class="vendas-cabecalho">
+        <div>
+            <span class="vendas-kicker">GESTÃO COMERCIAL</span>
+            <h1>Vendas</h1>
+            <p>Cadastro e controle das vendas da Mercoplacas</p>
+        </div>
+
+        <div class="vendas-cabecalho-info">
+            <span class="vendas-status-online"></span>
+            Sistema operacional
+        </div>
+    </div>
+
+
+    <!-- INDICADORES -->
+    {% set resumo = namespace(total=0, pagos=0, pendentes=0) %}
+
+    {% for v in vendas %}
+        {% set resumo.total = resumo.total + (v.valor|float) %}
+
+        {% if v.pago %}
+            {% set resumo.pagos = resumo.pagos + 1 %}
+        {% else %}
+            {% set resumo.pendentes = resumo.pendentes + 1 %}
+        {% endif %}
+    {% endfor %}
+
+
+    <div class="vendas-indicadores">
+
+        <div class="indicador-venda">
+            <div class="indicador-venda-icone">
+                <span>▣</span>
+            </div>
+
+            <div class="indicador-venda-conteudo">
+                <span>Vendas cadastradas</span>
+                <strong>{{ vendas|length }}</strong>
+                <small>Total registrado</small>
+            </div>
+        </div>
+
+
+        <div class="indicador-venda">
+            <div class="indicador-venda-icone">
+                <span>R$</span>
+            </div>
+
+            <div class="indicador-venda-conteudo">
+                <span>Valor total</span>
+                <strong>R$ {{ "%.2f"|format(resumo.total) }}</strong>
+                <small>Valor bruto das vendas</small>
+            </div>
+        </div>
+
+
+        <div class="indicador-venda indicador-pago">
+            <div class="indicador-venda-icone">
+                <span>✓</span>
+            </div>
+
+            <div class="indicador-venda-conteudo">
+                <span>Vendas pagas</span>
+                <strong>{{ resumo.pagos }}</strong>
+                <small>Pagamentos registrados</small>
+            </div>
+        </div>
+
+
+        <div class="indicador-venda indicador-pendente">
+            <div class="indicador-venda-icone">
+                <span>!</span>
+            </div>
+
+            <div class="indicador-venda-conteudo">
+                <span>Vendas pendentes</span>
+                <strong>{{ resumo.pendentes }}</strong>
+                <small>Aguardando pagamento</small>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- MENSAGENS -->
+    {% with mensagens = get_flashed_messages(with_categories=true) %}
+        {% if mensagens %}
+            <div class="vendas-mensagens">
+
+                {% for categoria, mensagem in mensagens %}
+
+                    <div class="venda-alerta {{ categoria }}">
+                        {% if categoria == "sucesso" %}
+                            <span class="alerta-icone">✓</span>
+                        {% else %}
+                            <span class="alerta-icone">!</span>
+                        {% endif %}
+
+                        <span>{{ mensagem }}</span>
+                    </div>
+
+                {% endfor %}
+
+            </div>
+        {% endif %}
+    {% endwith %}
+
+
+    <!-- ÁREA DO FORMULÁRIO -->
+    <div class="card-vendas">
+
+        <div class="card-vendas-titulo">
+
+            <div class="card-titulo-icone">
+                {% if venda_edicao %}
+                    ✎
+                {% else %}
+                    +
+                {% endif %}
+            </div>
+
+            <div>
+                <h2>
+                    {% if venda_edicao %}
+                        Alterar venda
+                    {% else %}
+                        Nova venda
+                    {% endif %}
+                </h2>
+
+                <p>
+                    {% if venda_edicao %}
+                        Altere os dados da venda selecionada.
+                    {% else %}
+                        Preencha os dados para registrar uma nova venda.
+                    {% endif %}
+                </p>
+            </div>
+
+        </div>
+
+
+        {% if venda_edicao %}
+            <form
+                action="{{ url_for('editar_venda_rota', venda_id=venda_edicao.id) }}"
+                method="POST"
+                class="form-vendas"
+            >
+        {% else %}
+            <form
+                action="{{ url_for('vendas') }}"
+                method="POST"
+                class="form-vendas"
+            >
+        {% endif %}
+
+
+            <!-- PRIMEIRA LINHA -->
+            <div class="grid-vendas">
+
+                <!-- DESPACHANTE -->
+                <div class="campo-venda">
+
+                    <label for="despachante_id">
+                        <span class="campo-icone">◉</span>
+                        Despachante
+                    </label>
+
+                    <select
+                        id="despachante_id"
+                        name="despachante_id"
+                    >
+                        <option value="">Selecione o despachante</option>
+
+                        {% for d in despachantes %}
+                            <option
+                                value="{{ d.id }}"
+                                {% if venda_edicao and venda_edicao.despachante_id == d.id %}selected{% endif %}
+                            >
+                                {{ d.nome }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- CLIENTE -->
+                <div class="campo-venda">
+
+                    <label for="cliente_id">
+                        <span class="campo-icone">●</span>
+                        Cliente
+                    </label>
+
+                    <select
+                        id="cliente_id"
+                        name="cliente_id"
+                    >
+                        <option value="">Selecione o cliente</option>
+
+                        {% for c in clientes %}
+                            <option
+                                value="{{ c.id }}"
+                                {% if venda_edicao and venda_edicao.cliente_id == c.id %}selected{% endif %}
+                            >
+                                {{ c.nome }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- PLACA -->
+                <div class="campo-venda">
+
+                    <label for="placa">
+                        <span class="campo-icone">▤</span>
+                        Placa
+                    </label>
+
+                    <input
+                        type="text"
+                        id="placa"
+                        name="placa"
+                        maxlength="10"
+                        placeholder="Ex.: ABC1D23"
+                        value="{{ venda_edicao.placa if venda_edicao else '' }}"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- DATA -->
+                <div class="campo-venda">
+
+                    <label for="data">
+                        <span class="campo-icone">▣</span>
+                        Data
+                    </label>
+
+                    <input
+                        type="date"
+                        id="data"
+                        name="data"
+                        value="{{ venda_edicao.data if venda_edicao else '' }}"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- SEGUNDA LINHA -->
+            <div class="grid-vendas grid-vendas-servico">
+
+                <!-- SERVIÇO -->
+                <div class="campo-venda campo-servico">
+
+                    <label for="servico">
+                        <span class="campo-icone">◆</span>
+                        Serviço
+                    </label>
+
+                    <select
+                        id="servico"
+                        name="servico"
+                        onchange="atualizarValor()"
+                        required
+                    >
+
+                        <option
+                            value="Carro - par"
+                            {% if venda_edicao and venda_edicao.servico == "Carro - par" %}selected{% endif %}
+                        >
+                            Carro - par
+                        </option>
+
+                        <option
+                            value="Unitária / Moto"
+                            {% if venda_edicao and venda_edicao.servico == "Unitária / Moto" %}selected{% endif %}
+                        >
+                            Unitária / Moto
+                        </option>
+
+                    </select>
+
+                    <small class="campo-ajuda">
+                        O valor é preenchido automaticamente conforme o serviço.
+                    </small>
+
+                </div>
+
+
+                <!-- VALOR -->
+                <div class="campo-venda campo-valor-venda">
+
+                    <label for="valor">
+                        <span class="campo-icone">R$</span>
+                        Valor da venda
+                    </label>
+
+                    <div class="valor-box">
+
+                        <span class="valor-simbolo">R$</span>
+
+                        <input
+                            type="text"
+                            id="valor"
+                            name="valor"
+                            readonly
+                            value="{% if venda_edicao %}{{ "%.2f"|format(venda_edicao.valor|float) }}{% else %}248.97{% endif %}"
+                        >
+
+                        <span class="valor-automatico">
+                            AUTOMÁTICO
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- FORMA DE PAGAMENTO -->
+                <div class="campo-venda">
+
+                    <label for="forma_pagamento">
+                        <span class="campo-icone">▤</span>
+                        Forma de pagamento
+                    </label>
+
+                    <select
+                        id="forma_pagamento"
+                        name="forma_pagamento"
+                    >
+
+                        <option
+                            value=""
+                            {% if not venda_edicao or not venda_edicao.forma_pagamento %}selected{% endif %}
+                        >
+                            Selecione
+                        </option>
+
+                        <option
+                            value="Dinheiro"
+                            {% if venda_edicao and venda_edicao.forma_pagamento == "Dinheiro" %}selected{% endif %}
+                        >
+                            Dinheiro
+                        </option>
+
+                        <option
+                            value="Pix"
+                            {% if venda_edicao and venda_edicao.forma_pagamento == "Pix" %}selected{% endif %}
+                        >
+                            PIX
+                        </option>
+
+                        <option
+                            value="Cartão de débito"
+                            {% if venda_edicao and venda_edicao.forma_pagamento == "Cartão de débito" %}selected{% endif %}
+                        >
+                            Cartão de débito
+                        </option>
+
+                        <option
+                            value="Cartão de crédito"
+                            {% if venda_edicao and venda_edicao.forma_pagamento == "Cartão de crédito" %}selected{% endif %}
+                        >
+                            Cartão de crédito
+                        </option>
+
+                        <option
+                            value="Transferência"
+                            {% if venda_edicao and venda_edicao.forma_pagamento == "Transferência" %}selected{% endif %}
+                        >
+                            Transferência
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- STATUS -->
+                <div class="campo-venda campo-status-venda">
+
+                    <label for="pago">
+                        <span class="campo-icone">✓</span>
+                        Status do pagamento
+                    </label>
+
+                    <select
+                        id="pago"
+                        name="pago"
+                    >
+
+                        <option
+                            value="1"
+                            {% if venda_edicao and venda_edicao.pago %}selected{% elif not venda_edicao %}selected{% endif %}
+                        >
+                            Pago
+                        </option>
+
+                        <option
+                            value="0"
+                            {% if venda_edicao and not venda_edicao.pago %}selected{% endif %}
+                        >
+                            Pendente
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <!-- DESTAQUE DO SERVIÇO -->
+            <div class="resumo-servico-venda">
+
+                <div class="resumo-servico-icone">
+                    ✓
+                </div>
+
+                <div class="resumo-servico-texto">
+                    <strong>Valor calculado automaticamente</strong>
+                    <span>
+                        Carro - par: R$ 248,97 &nbsp; • &nbsp;
+                        Unitária / Moto: R$ 196,86
+                    </span>
+                </div>
+
+            </div>
+
+
+            <!-- BOTÕES -->
+            <div class="botoes-venda">
+
+                {% if venda_edicao %}
+
+                    <button
+                        type="submit"
+                        class="btn-venda btn-salvar"
+                    >
+                        <span>✓</span>
+                        Salvar alterações
+                    </button>
+
+                    <a
+                        href="{{ url_for('vendas') }}"
+                        class="btn-venda btn-cancelar"
+                    >
+                        <span>×</span>
+                        Cancelar
+                    </a>
+
+                {% else %}
+
+                    <button
+                        type="submit"
+                        class="btn-venda btn-salvar"
+                    >
+                        <span>✓</span>
+                        Cadastrar venda
+                    </button>
+
+                    <button
+                        type="reset"
+                        class="btn-venda btn-limpar"
+                        onclick="limparFormulario()"
+                    >
+                        <span>↺</span>
+                        Limpar
+                    </button>
+
+                {% endif %}
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- HISTÓRICO -->
+    <div class="card-lista-vendas">
+
+        <div class="lista-vendas-cabecalho">
+
+            <div class="lista-vendas-titulo">
+
+                <div class="lista-vendas-icone">
+                    ☷
+                </div>
+
+                <div>
+                    <h2>Histórico de vendas</h2>
+                    <p>Confira todas as vendas cadastradas no sistema.</p>
+                </div>
+
+            </div>
+
+
+            <div class="contador-vendas">
+                {{ vendas|length }}
+                {% if vendas|length == 1 %}
+                    venda
+                {% else %}
+                    vendas
+                {% endif %}
+            </div>
+
+        </div>
+
+
+        <!-- FILTRO DO HISTÓRICO -->
+        <div class="filtro-vendas" style="padding: 18px 22px; border-top: 1px solid #edf1f5; border-bottom: 1px solid #edf1f5; background: #fbfcfe;">
+            <form method="GET" action="{{ url_for('vendas') }}" style="display: flex; align-items: end; gap: 12px; flex-wrap: wrap;">
+
+                <div class="campo-venda" style="min-width: 170px; margin: 0;">
+                    <label for="data_inicio">
+                        <span class="campo-icone">▣</span>
+                        Data inicial
+                    </label>
+                    <input
+                        type="date"
+                        id="data_inicio"
+                        name="data_inicio"
+                        value="{{ data_inicio or '' }}"
+                    >
+                </div>
+
+                <div class="campo-venda" style="min-width: 170px; margin: 0;">
+                    <label for="data_fim">
+                        <span class="campo-icone">▣</span>
+                        Data final
+                    </label>
+                    <input
+                        type="date"
+                        id="data_fim"
+                        name="data_fim"
+                        value="{{ data_fim or '' }}"
+                    >
+                </div>
+
+                <button type="submit" class="btn-venda btn-salvar" style="min-height: 43px;">
+                    <span>⌕</span>
+                    Filtrar
+                </button>
+
+                <a href="{{ url_for('vendas') }}" class="btn-venda btn-cancelar" style="min-height: 43px;">
+                    <span>↺</span>
+                    Limpar filtro
+                </a>
+
+                <a href="{{ url_for('vendas', data_inicio=hoje, data_fim=hoje) }}" class="btn-venda btn-editar" style="min-height: 43px;">
+                    Hoje
+                </a>
+
+            </form>
+
+            <div style="margin-top: 10px; color: #64748b; font-size: 11px;">
+                {% if data_inicio and data_fim %}
+                    Exibindo vendas de <strong>{{ data_inicio[8:10] }}/{{ data_inicio[5:7] }}/{{ data_inicio[0:4] }}</strong>
+                    até <strong>{{ data_fim[8:10] }}/{{ data_fim[5:7] }}/{{ data_fim[0:4] }}</strong>.
+                {% else %}
+                    Exibindo todas as vendas cadastradas.
+                {% endif %}
+            </div>
+        </div>
+
+
+        {% if vendas %}
+
+            <div class="tabela-vendas-container">
+
+                <table class="tabela-vendas">
+
+                    <thead>
+
+                        <tr>
+                            <th>Data</th>
+                            <th>Placa</th>
+                            <th>Serviço</th>
+                            <th>Cliente</th>
+                            <th>Despachante</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th>Responsável</th>
+                            <th>Ações</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for v in vendas %}
+
+                            <tr>
+
+                                <!-- DATA -->
+                                <td>
+                                    <span class="data-venda">
+                                        {% if v.data %}
+                                            {% set partes_data = v.data.split('-') %}
+                                            {% if partes_data|length == 3 %}
+                                                {{ partes_data[2] }}/{{ partes_data[1] }}/{{ partes_data[0] }}
+                                            {% else %}
+                                                {{ v.data }}
+                                            {% endif %}
+                                        {% endif %}
+                                    </span>
+                                </td>
+
+
+                                <!-- PLACA -->
+                                <td>
+                                    <span class="placa-venda">
+                                        {{ v.placa }}
+                                    </span>
+                                </td>
+
+
+                                <!-- SERVIÇO -->
+                                <td>
+
+                                    <span class="servico-venda">
+
+                                        {% if v.servico == "Carro - par" %}
+                                            Carro - par
+                                        {% else %}
+                                            Unitária / Moto
+                                        {% endif %}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- CLIENTE -->
+                                <td>
+                                    <span class="cliente-venda">
+                                        {{ v.cliente or "Não informado" }}
+                                    </span>
+                                </td>
+
+
+                                <!-- DESPACHANTE -->
+                                <td>
+                                    <span class="despachante-venda">
+                                        {{ v.despachante or "Não informado" }}
+                                    </span>
+                                </td>
+
+
+                                <!-- VALOR -->
+                                <td>
+
+                                    <strong class="valor-tabela-venda">
+                                        R$ {{ "%.2f"|format(v.valor|float) }}
+                                    </strong>
+
+                                </td>
+
+
+                                <!-- STATUS -->
+                                <td>
+
+                                    {% if v.pago %}
+
+                                        <span class="status-venda status-pago">
+                                            <span>✓</span>
+                                            Pago
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="status-venda status-pendente">
+                                            <span>!</span>
+                                            Pendente
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- RESPONSÁVEL -->
+                                <td>
+                                    <span class="responsavel-venda">
+                                        {{ v.usuario_nome or "Não informado" }}
+                                    </span>
+                                </td>
+
+
+                                <!-- AÇÕES -->
+                                <td>
+
+                                    <div class="acoes-venda">
+
+                                        <a
+                                            href="{{ url_for('editar_venda_rota', venda_id=v.id) }}"
+                                            class="acao-venda acao-editar"
+                                            title="Editar venda"
+                                        >
+                                            ✎
+                                        </a>
+
+
+                                        <form
+                                            action="{{ url_for('excluir_venda_rota', venda_id=v.id) }}"
+                                            method="POST"
+                                            onsubmit="return confirmarExclusao()"
+                                        >
+
+                                            <button
+                                                type="submit"
+                                                class="acao-venda acao-excluir"
+                                                title="Excluir venda"
+                                            >
+                                                ×
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="vendas-vazio">
+
+                <div class="vendas-vazio-icone">
+                    ▱
+                </div>
+
+                <h3>Nenhuma venda cadastrada</h3>
+
+                <p>
+                    As vendas registradas aparecerão aqui.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- JAVASCRIPT -->
+<script>
+
+    function atualizarValor() {
+
+        const servico = document.getElementById("servico");
+        const valor = document.getElementById("valor");
+
+        if (!servico || !valor) {
+            return;
+        }
+
+        if (servico.value === "Carro - par") {
+
+            valor.value = "248.97";
+
+        } else if (servico.value === "Unitária / Moto") {
+
+            valor.value = "196.86";
+
+        }
+
+    }
+
+
+    function limparFormulario() {
+
+        setTimeout(function () {
+
+            const servico = document.getElementById("servico");
+
+            if (servico) {
+                servico.value = "Carro - par";
+            }
+
+            atualizarValor();
+
+        }, 10);
+
+    }
+
+
+    function confirmarExclusao() {
+
+        return confirm(
+            "Tem certeza que deseja excluir esta venda?\n\n" +
+            "Esta operação não poderá ser desfeita."
+        );
+
+    }
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        atualizarValor();
+
+
+        const placa = document.getElementById("placa");
+
+        if (placa) {
+
+            placa.addEventListener("input", function () {
+
+                this.value = this.value
+                    .toUpperCase()
+                    .replace(/\s/g, "");
+
+            });
+
+        }
+
+    });
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,44 @@
+# Ambiente virtual
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Banco de dados local
+*.db
+*.sqlite
+*.sqlite3
+
+# Variáveis de ambiente
+.env
+.env.*
+
+# VS Code
+.vscode/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.log
+
+# Arquivos antigos do projeto
+app(2).py
+app_filtro_vendas.py
+app_gastos_atualizado.py
+app_gastos_base.py
+banco(2).py
+banco_filtro_vendas.py
+banco_gastos_atualizado.py
+base_completo_corrigido.html
+style_corrigir.css
+relatorios_gastos_com_editar_excluir.html
+relatorios_pdf_vendas_e_gastos.html
+vendas_completo_corrigido.html

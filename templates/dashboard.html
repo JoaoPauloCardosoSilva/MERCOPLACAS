@@ -1,0 +1,634 @@
+{% extends "base.html" %}
+
+{% block title %}
+Dashboard | MERCOPLACAS
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard">
+
+```
+<!-- ==========================================
+     CABEÇALHO
+     ========================================== -->
+
+<div class="dashboard-topo">
+
+    <div>
+
+        <h1>
+            Bom dia! 👋
+        </h1>
+
+        <p>
+            Acompanhe o desempenho do MERCOPLACAS em um só lugar.
+        </p>
+
+    </div>
+
+
+    <div class="data-dashboard">
+
+        📅
+
+        {{ dados.data_atual if dados.data_atual else "Hoje" }}
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     PRIMEIRA LINHA
+     ========================================== -->
+
+<div class="cards-dashboard">
+
+
+    <div class="card-indicador">
+
+        <div class="indicador-topo">
+
+            <div class="indicador-label">
+                Vendas hoje
+            </div>
+
+            <div class="indicador-icone">
+                💰
+            </div>
+
+        </div>
+
+        <div class="indicador-valor">
+
+            R$
+            {{ "%.2f"|format(dados.vendas_hoje or 0)|replace(".", ",") }}
+
+        </div>
+
+        <div class="indicador-info">
+            Total vendido hoje
+        </div>
+
+    </div>
+
+
+    <div class="card-indicador">
+
+        <div class="indicador-topo">
+
+            <div class="indicador-label">
+                Vendas do mês
+            </div>
+
+            <div class="indicador-icone">
+                📅
+            </div>
+
+        </div>
+
+        <div class="indicador-valor">
+
+            R$
+            {{ "%.2f"|format(dados.vendas_mes or 0)|replace(".", ",") }}
+
+        </div>
+
+        <div class="indicador-info">
+            Acumulado do mês
+        </div>
+
+    </div>
+
+
+    <div class="card-indicador">
+
+        <div class="indicador-topo">
+
+            <div class="indicador-label">
+                Total bruto
+            </div>
+
+            <div class="indicador-icone">
+                📈
+            </div>
+
+        </div>
+
+        <div class="indicador-valor">
+
+            R$
+            {{ "%.2f"|format(dados.total_bruto or 0)|replace(".", ",") }}
+
+        </div>
+
+        <div class="indicador-info">
+            Valor total das vendas
+        </div>
+
+    </div>
+
+
+    <div class="card-indicador">
+
+        <div class="indicador-topo">
+
+            <div class="indicador-label">
+                Total líquido
+            </div>
+
+            <div class="indicador-icone">
+                💎
+            </div>
+
+        </div>
+
+        <div class="indicador-valor">
+
+            R$
+            {{ "%.2f"|format(dados.total_liquido or 0)|replace(".", ",") }}
+
+        </div>
+
+        <div class="indicador-info">
+            Resultado líquido das vendas
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     SEGUNDA LINHA
+     ========================================== -->
+
+<div class="cards-dashboard">
+
+
+    <div class="card-indicador">
+
+        <div class="indicador-topo">
+
+            <div class="indicador-label">
+                Gastos
+            </div>
+
+            <div class="indicador-icone">
+                💸
+            </div>
+
+        </div>
+
+        <div class="indicador-valor">
+
+            R$
+            {{ "%.2f"|format(dados.gastos or 0)|replace(".", ",") }}
+
+        </div>
+
+        <div class="indicador-info">
+            Despesas registradas
+        </div>
+
+    </div>
+
+
+    <div class="card-indicador">
+
+        <div class="indicador-topo">
+
+            <div class="indicador-label">
+                Saldo
+            </div>
+
+            <div class="indicador-icone">
+                💵
+            </div>
+
+        </div>
+
+        <div class="indicador-valor">
+
+            R$
+            {{ "%.2f"|format(dados.saldo or 0)|replace(".", ",") }}
+
+        </div>
+
+        <div class="indicador-info">
+            Resultado atual
+        </div>
+
+    </div>
+
+
+    <div class="card-indicador">
+
+        <div class="indicador-topo">
+
+            <div class="indicador-label">
+                Pendentes
+            </div>
+
+            <div class="indicador-icone">
+                ⚠️
+            </div>
+
+        </div>
+
+        <div class="indicador-valor">
+
+            {{ dados.pedidos_pendentes or 0 }}
+
+        </div>
+
+        <div class="indicador-info">
+            Vendas aguardando pagamento
+        </div>
+
+    </div>
+
+
+    <div class="card-indicador">
+
+        <div class="indicador-topo">
+
+            <div class="indicador-label">
+                Sistema
+            </div>
+
+            <div class="indicador-icone">
+                ✓
+            </div>
+
+        </div>
+
+        <div class="indicador-valor">
+            Online
+        </div>
+
+        <div class="indicador-info">
+            Sistema funcionando normalmente
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     VISÃO FINANCEIRA + ALERTAS
+     ========================================== -->
+
+<div class="dashboard-grid">
+
+
+    <!-- VISÃO FINANCEIRA -->
+
+    <div class="dashboard-card">
+
+        <div class="dashboard-card-header">
+
+            <div>
+
+                <h2>
+                    📊 Visão financeira
+                </h2>
+
+                <span>
+                    Resumo das movimentações
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="visao-financeira">
+
+
+            <div class="financeiro-item">
+
+                <span>
+                    VENDAS
+                </span>
+
+                <strong>
+
+                    R$
+                    {{ "%.2f"|format(dados.total_bruto or 0)|replace(".", ",") }}
+
+                </strong>
+
+            </div>
+
+
+            <div class="financeiro-item">
+
+                <span>
+                    GASTOS
+                </span>
+
+                <strong>
+
+                    R$
+                    {{ "%.2f"|format(dados.gastos or 0)|replace(".", ",") }}
+
+                </strong>
+
+            </div>
+
+
+            <div class="financeiro-item">
+
+                <span>
+                    LÍQUIDO
+                </span>
+
+                <strong>
+
+                    R$
+                    {{ "%.2f"|format(dados.total_liquido or 0)|replace(".", ",") }}
+
+                </strong>
+
+            </div>
+
+
+            <div class="financeiro-item">
+
+                <span>
+                    SALDO
+                </span>
+
+                <strong>
+
+                    R$
+                    {{ "%.2f"|format(dados.saldo or 0)|replace(".", ",") }}
+
+                </strong>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+    <!-- ALERTAS -->
+
+    <div class="dashboard-card">
+
+        <div class="dashboard-card-header">
+
+            <div>
+
+                <h2>
+                    🔔 Atenção
+                </h2>
+
+                <span>
+                    Informações importantes
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="alertas">
+
+
+            <div class="alerta">
+
+                <div class="alerta-icone">
+                    💰
+                </div>
+
+                <div>
+
+                    <strong>
+                        Vendas do dia
+                    </strong>
+
+                    <span>
+
+                        R$
+                        {{ "%.2f"|format(dados.vendas_hoje or 0)|replace(".", ",") }}
+
+                        vendidos hoje
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="alerta">
+
+                <div class="alerta-icone">
+                    ⚠️
+                </div>
+
+                <div>
+
+                    <strong>
+                        Pagamentos pendentes
+                    </strong>
+
+                    <span>
+
+                        {{ dados.pedidos_pendentes or 0 }}
+
+                        venda(s) pendente(s)
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="alerta">
+
+                <div class="alerta-icone">
+                    📦
+                </div>
+
+                <div>
+
+                    <strong>
+                        Controle de estoque
+                    </strong>
+
+                    <span>
+                        Verifique os produtos disponíveis
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="alerta">
+
+                <div class="alerta-icone">
+                    💵
+                </div>
+
+                <div>
+
+                    <strong>
+                        Controle de caixa
+                    </strong>
+
+                    <span>
+                        Mantenha o caixa atualizado
+                    </span>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     ACESSO RÁPIDO
+     ========================================== -->
+
+<div class="dashboard-vendas">
+
+
+    <div class="dashboard-card-header">
+
+        <div>
+
+            <h2>
+                ⚡ Acesso rápido
+            </h2>
+
+            <span>
+                Principais operações do sistema
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="dashboard-acoes">
+
+
+        <a
+            href="{{ url_for('vendas') }}"
+            class="acao-dashboard"
+        >
+
+            <div class="acao-icone">
+                💰
+            </div>
+
+            <div>
+
+                <strong>
+                    Nova venda
+                </strong>
+
+                <span>
+                    Registrar uma venda
+                </span>
+
+            </div>
+
+        </a>
+
+
+        <a
+            href="{{ url_for('clientes') }}"
+            class="acao-dashboard"
+        >
+
+            <div class="acao-icone">
+                👥
+            </div>
+
+            <div>
+
+                <strong>
+                    Novo cliente
+                </strong>
+
+                <span>
+                    Cadastrar cliente
+                </span>
+
+            </div>
+
+        </a>
+
+
+        <a
+            href="{{ url_for('gastos') }}"
+            class="acao-dashboard"
+        >
+
+            <div class="acao-icone">
+                💸
+            </div>
+
+            <div>
+
+                <strong>
+                    Registrar gasto
+                </strong>
+
+                <span>
+                    Adicionar despesa
+                </span>
+
+            </div>
+
+        </a>
+
+
+        <a
+            href="{{ url_for('relatorios') }}"
+            class="acao-dashboard"
+        >
+
+            <div class="acao-icone">
+                📊
+            </div>
+
+            <div>
+
+                <strong>
+                    Relatórios
+                </strong>
+
+                <span>
+                    Consultar informações
+                </span>
+
+            </div>
+
+        </a>
+
+
+    </div>
+
+</div>
+```
+
+</div>
+
+{% endblock %}

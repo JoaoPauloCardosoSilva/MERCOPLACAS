@@ -1,0 +1,93 @@
+Sim, dá certo. 👍 Você pode copiar a pasta inteira MERCOPLACAS para um pendrive e continuar em outro computador.
+
+Só tem um detalhe importante: o projeto vai junto, mas o ambiente Python .venv não é bom para transportar entre computadores.
+
+No computador de casa
+
+Copie a pasta:
+
+MERCOPLACAS
+
+Depois, no VS Code, abra essa pasta.
+
+No terminal:
+
+cd C:\caminho\para\MERCOPLACAS
+
+Crie um novo ambiente:
+
+python -m venv .venv
+
+Ative:
+
+.venv\Scripts\activate
+
+Instale o Flask:
+
+python -m pip install -r requirements.txt
+
+E execute:
+
+python app.py
+⚠️ E tem uma coisa muito importante
+
+Seu arquivo:
+
+banco.db
+
+também está dentro do projeto.
+
+Então copie ele junto.
+
+É nele que estão seus:
+
+clientes;
+despachantes;
+vendas;
+gastos;
+estoque;
+caixas;
+dados dos relatórios.
+
+Ou seja, a estrutura no pendrive deve ficar aproximadamente:
+
+MERCOPLACAS
+│
+├── app.py
+├── banco.db              ← IMPORTANTE
+├── requirements.txt
+│
+├── database
+│   ├── __init__.py
+│   └── banco.py
+│
+├── templates
+│   ├── base.html
+│   ├── login.html
+│   ├── dashboard.html
+│   ├── vendas.html
+│   ├── clientes.html
+│   ├── despachantes.html
+│   ├── gastos.html
+│   ├── estoque.html
+│   ├── caixa.html
+│   └── relatorios.html
+│
+└── static
+    ├── css
+    │   └── style.css
+    └── js
+        └── script.js
+💡 Melhor ainda
+
+Como estamos desenvolvendo esse sistema, eu recomendo não depender do pendrive como único backup.
+
+Faça uma cópia da pasta:
+
+MERCOPLACAS_BACKUP
+
+antes de continuar em outro computador.
+
+E futuramente podemos colocar o projeto no GitHub, aí você consegue continuar na escola, em casa ou em outro computador sem precisar ficar copiando pendrive.
+
+Por enquanto, pendrive funciona perfeitamente para continuar o desenvolvimento.

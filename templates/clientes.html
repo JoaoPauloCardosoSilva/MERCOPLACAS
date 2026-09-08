@@ -1,0 +1,885 @@
+{% extends "base.html" %}
+
+{% block title %}Clientes - Mercoplacas{% endblock %}
+
+{% block content %}
+
+<div class="pagina-clientes">
+
+    <!-- CABEÇALHO -->
+    <div class="clientes-cabecalho">
+
+        <div>
+            <span class="clientes-kicker">GESTÃO DE CLIENTES</span>
+
+            <h1>Clientes</h1>
+
+            <p>
+                Cadastro e controle dos clientes da Mercoplacas
+            </p>
+        </div>
+
+        <div class="clientes-cabecalho-info">
+            <span class="clientes-status-online"></span>
+            Cadastro ativo
+        </div>
+
+    </div>
+
+
+    <!-- INDICADORES -->
+    {% set resumo = namespace(
+        total=0,
+        telefone=0,
+        documento=0,
+        observacoes=0
+    ) %}
+
+    {% for c in clientes %}
+
+        {% set resumo.total = resumo.total + 1 %}
+
+        {% if c.telefone %}
+            {% set resumo.telefone = resumo.telefone + 1 %}
+        {% endif %}
+
+        {% if c.cpf_cnpj %}
+            {% set resumo.documento = resumo.documento + 1 %}
+        {% endif %}
+
+        {% if c.observacoes %}
+            {% set resumo.observacoes = resumo.observacoes + 1 %}
+        {% endif %}
+
+    {% endfor %}
+
+
+    <div class="clientes-indicadores">
+
+        <!-- TOTAL -->
+        <div class="indicador-cliente">
+
+            <div class="indicador-cliente-icone">
+                👥
+            </div>
+
+            <div class="indicador-cliente-conteudo">
+
+                <span>Total de clientes</span>
+
+                <strong>{{ resumo.total }}</strong>
+
+                <small>Clientes cadastrados</small>
+
+            </div>
+
+        </div>
+
+
+        <!-- TELEFONE -->
+        <div class="indicador-cliente">
+
+            <div class="indicador-cliente-icone">
+                ☎
+            </div>
+
+            <div class="indicador-cliente-conteudo">
+
+                <span>Com telefone</span>
+
+                <strong>{{ resumo.telefone }}</strong>
+
+                <small>Contatos cadastrados</small>
+
+            </div>
+
+        </div>
+
+
+        <!-- DOCUMENTOS -->
+        <div class="indicador-cliente">
+
+            <div class="indicador-cliente-icone">
+                ▣
+            </div>
+
+            <div class="indicador-cliente-conteudo">
+
+                <span>Com documento</span>
+
+                <strong>{{ resumo.documento }}</strong>
+
+                <small>CPF ou CNPJ informado</small>
+
+            </div>
+
+        </div>
+
+
+        <!-- OBSERVAÇÕES -->
+        <div class="indicador-cliente">
+
+            <div class="indicador-cliente-icone">
+                ☷
+            </div>
+
+            <div class="indicador-cliente-conteudo">
+
+                <span>Com observações</span>
+
+                <strong>{{ resumo.observacoes }}</strong>
+
+                <small>Informações adicionais</small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- MENSAGENS -->
+    {% with mensagens = get_flashed_messages(with_categories=true) %}
+
+        {% if mensagens %}
+
+            <div class="clientes-mensagens">
+
+                {% for categoria, mensagem in mensagens %}
+
+                    <div class="cliente-alerta {{ categoria }}">
+
+                        {% if categoria == "sucesso" %}
+
+                            <span class="alerta-cliente-icone">
+                                ✓
+                            </span>
+
+                        {% else %}
+
+                            <span class="alerta-cliente-icone">
+                                !
+                            </span>
+
+                        {% endif %}
+
+                        <span>{{ mensagem }}</span>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+    {% endwith %}
+
+
+    <!-- CARD DO FORMULÁRIO -->
+    <div class="card-clientes">
+
+        <div class="card-clientes-titulo">
+
+            <div class="card-clientes-icone">
+
+                {% if cliente_edicao %}
+                    ✎
+                {% else %}
+                    +
+                {% endif %}
+
+            </div>
+
+            <div>
+
+                <h2>
+
+                    {% if cliente_edicao %}
+                        Editar cliente
+                    {% else %}
+                        Novo cliente
+                    {% endif %}
+
+                </h2>
+
+                <p>
+
+                    {% if cliente_edicao %}
+                        Altere os dados do cliente selecionado.
+                    {% else %}
+                        Preencha os dados para cadastrar um novo cliente.
+                    {% endif %}
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- FORMULÁRIO -->
+        {% if cliente_edicao %}
+
+            <form
+                method="POST"
+                action="{{ url_for('editar_cliente_rota', cliente_id=cliente_edicao.id) }}"
+                class="form-clientes"
+            >
+
+        {% else %}
+
+            <form
+                method="POST"
+                action="{{ url_for('clientes') }}"
+                class="form-clientes"
+            >
+
+        {% endif %}
+
+
+            <div class="grid-clientes">
+
+                <!-- NOME -->
+                <div class="campo-cliente campo-cliente-nome">
+
+                    <label for="nome">
+
+                        <span class="campo-cliente-icone">
+                            ●
+                        </span>
+
+                        Nome
+
+                    </label>
+
+                    <input
+                        type="text"
+                        id="nome"
+                        name="nome"
+                        placeholder="Nome completo ou razão social"
+                        value="{{ cliente_edicao.nome if cliente_edicao else '' }}"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- TELEFONE -->
+                <div class="campo-cliente">
+
+                    <label for="telefone">
+
+                        <span class="campo-cliente-icone">
+                            ☎
+                        </span>
+
+                        Telefone
+
+                    </label>
+
+                    <input
+                        type="text"
+                        id="telefone"
+                        name="telefone"
+                        placeholder="(35) 99999-1234"
+                        maxlength="15"
+                        inputmode="numeric"
+                        value="{{ cliente_edicao.telefone if cliente_edicao else '' }}"
+                    >
+
+                    <small class="campo-cliente-ajuda">
+                        Informe o telefone para contato.
+                    </small>
+
+                </div>
+
+
+                <!-- CPF / CNPJ -->
+                <div class="campo-cliente">
+
+                    <label for="cpf_cnpj">
+
+                        <span class="campo-cliente-icone">
+                            ▣
+                        </span>
+
+                        CPF / CNPJ
+
+                    </label>
+
+                    <input
+                        type="text"
+                        id="cpf_cnpj"
+                        name="cpf_cnpj"
+                        placeholder="CPF ou CNPJ"
+                        maxlength="18"
+                        inputmode="numeric"
+                        value="{{ cliente_edicao.cpf_cnpj if cliente_edicao else '' }}"
+                    >
+
+                    <small class="campo-cliente-ajuda">
+                        Digite somente os números.
+                    </small>
+
+                </div>
+
+
+                <!-- OBSERVAÇÕES -->
+                <div class="campo-cliente">
+
+                    <label for="observacoes">
+
+                        <span class="campo-cliente-icone">
+                            ☷
+                        </span>
+
+                        Observações
+
+                    </label>
+
+                    <input
+                        type="text"
+                        id="observacoes"
+                        name="observacoes"
+                        placeholder="Informações adicionais"
+                        value="{{ cliente_edicao.observacoes if cliente_edicao else '' }}"
+                    >
+
+                    <small class="campo-cliente-ajuda">
+                        Campo opcional.
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <!-- RESUMO -->
+            <div class="resumo-cliente">
+
+                <div class="resumo-cliente-icone">
+                    ✓
+                </div>
+
+                <div class="resumo-cliente-texto">
+
+                    <strong>
+                        Cadastro de cliente
+                    </strong>
+
+                    <span>
+                        Nome é obrigatório. Telefone, CPF/CNPJ e observações são opcionais.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- BOTÕES -->
+            <div class="botoes-cliente">
+
+                {% if cliente_edicao %}
+
+                    <button
+                        type="submit"
+                        class="btn-cliente btn-cliente-salvar"
+                    >
+
+                        <span>✓</span>
+
+                        Salvar alterações
+
+                    </button>
+
+
+                    <a
+                        href="{{ url_for('clientes') }}"
+                        class="btn-cliente btn-cliente-cancelar"
+                    >
+
+                        <span>×</span>
+
+                        Cancelar
+
+                    </a>
+
+                {% else %}
+
+                    <button
+                        type="submit"
+                        class="btn-cliente btn-cliente-salvar"
+                    >
+
+                        <span>✓</span>
+
+                        Cadastrar cliente
+
+                    </button>
+
+
+                    <button
+                        type="reset"
+                        class="btn-cliente btn-cliente-limpar"
+                    >
+
+                        <span>↺</span>
+
+                        Limpar
+
+                    </button>
+
+                {% endif %}
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- LISTA -->
+    <div class="card-lista-clientes">
+
+        <div class="lista-clientes-cabecalho">
+
+            <div class="lista-clientes-titulo">
+
+                <div class="lista-clientes-icone">
+                    👥
+                </div>
+
+                <div>
+
+                    <h2>
+                        Clientes cadastrados
+                    </h2>
+
+                    <p>
+                        Clientes registrados no sistema.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="contador-clientes">
+
+                {{ clientes|length }}
+
+                {% if clientes|length == 1 %}
+                    cliente
+                {% else %}
+                    clientes
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        {% if clientes %}
+
+            <div class="tabela-clientes-container">
+
+                <table class="tabela-clientes">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>ID</th>
+
+                            <th>Cliente</th>
+
+                            <th>Telefone</th>
+
+                            <th>CPF / CNPJ</th>
+
+                            <th>Observações</th>
+
+                            <th>Ações</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for c in clientes %}
+
+                            <tr>
+
+                                <!-- ID -->
+                                <td>
+
+                                    <span class="id-cliente">
+                                        #{{ c.id }}
+                                    </span>
+
+                                </td>
+
+
+                                <!-- NOME -->
+                                <td>
+
+                                    <div class="cliente-nome-tabela">
+
+                                        <div class="avatar-cliente">
+
+                                            {{ c.nome[0]|upper if c.nome else "C" }}
+
+                                        </div>
+
+                                        <div>
+
+                                            <strong>
+                                                {{ c.nome }}
+                                            </strong>
+
+                                            <small>
+                                                Cliente cadastrado
+                                            </small>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- TELEFONE -->
+                                <td>
+
+                                    {% if c.telefone %}
+
+                                        <span class="informacao-cliente">
+
+                                            <span>☎</span>
+
+                                            {{ c.telefone }}
+
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="informacao-vazia">
+                                            Não informado
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- CPF / CNPJ -->
+                                <td>
+
+                                    {% if c.cpf_cnpj %}
+
+                                        <span class="documento-cliente">
+
+                                            {{ c.cpf_cnpj }}
+
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="informacao-vazia">
+                                            Não informado
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- OBSERVAÇÕES -->
+                                <td>
+
+                                    {% if c.observacoes %}
+
+                                        <span
+                                            class="observacao-cliente"
+                                            title="{{ c.observacoes }}"
+                                        >
+
+                                            {{ c.observacoes }}
+
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="informacao-vazia">
+                                            —
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- AÇÕES -->
+                                <td>
+
+                                    <div class="acoes-cliente">
+
+                                        <!-- EDITAR -->
+                                        <a
+                                            href="{{ url_for('editar_cliente_rota', cliente_id=c.id) }}"
+                                            class="acao-cliente acao-cliente-editar"
+                                            title="Editar cliente"
+                                        >
+                                            ✎
+                                        </a>
+
+
+                                        <!-- EXCLUIR -->
+                                        <form
+                                            method="POST"
+                                            action="{{ url_for('excluir_cliente_rota', cliente_id=c.id) }}"
+                                            onsubmit="return confirmarExclusao('{{ c.nome|replace("'", "\\'") }}')"
+                                        >
+
+                                            <button
+                                                type="submit"
+                                                class="acao-cliente acao-cliente-excluir"
+                                                title="Excluir cliente"
+                                            >
+                                                ×
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="clientes-vazio">
+
+                <div class="clientes-vazio-icone">
+                    👥
+                </div>
+
+                <h3>
+                    Nenhum cliente cadastrado
+                </h3>
+
+                <p>
+                    Cadastre o primeiro cliente utilizando o formulário acima.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* ============================================================
+   MÁSCARA DE TELEFONE
+   ============================================================ */
+
+const telefone = document.getElementById("telefone");
+
+if (telefone) {
+
+    telefone.addEventListener("input", function () {
+
+        let valor = this.value.replace(/\D/g, "");
+
+        if (valor.length > 11) {
+            valor = valor.substring(0, 11);
+        }
+
+
+        /* TELEFONE FIXO */
+
+        if (valor.length <= 10) {
+
+            if (valor.length > 6) {
+
+                valor =
+                    "(" +
+                    valor.substring(0, 2) +
+                    ") " +
+                    valor.substring(2, 6) +
+                    "-" +
+                    valor.substring(6);
+
+            }
+
+            else if (valor.length > 2) {
+
+                valor =
+                    "(" +
+                    valor.substring(0, 2) +
+                    ") " +
+                    valor.substring(2);
+
+            }
+
+            else if (valor.length > 0) {
+
+                valor =
+                    "(" +
+                    valor;
+
+            }
+
+        }
+
+
+        /* CELULAR */
+
+        else {
+
+            valor =
+                "(" +
+                valor.substring(0, 2) +
+                ") " +
+                valor.substring(2, 7) +
+                "-" +
+                valor.substring(7);
+
+        }
+
+        this.value = valor;
+
+    });
+
+}
+
+
+/* ============================================================
+   MÁSCARA CPF / CNPJ
+   ============================================================ */
+
+const documento = document.getElementById("cpf_cnpj");
+
+if (documento) {
+
+    documento.addEventListener("input", function () {
+
+        let valor = this.value.replace(/\D/g, "");
+
+        if (valor.length > 14) {
+            valor = valor.substring(0, 14);
+        }
+
+
+        /* CPF */
+
+        if (valor.length <= 11) {
+
+            if (valor.length > 9) {
+
+                valor =
+                    valor.substring(0, 3) +
+                    "." +
+                    valor.substring(3, 6) +
+                    "." +
+                    valor.substring(6, 9) +
+                    "-" +
+                    valor.substring(9);
+
+            }
+
+            else if (valor.length > 6) {
+
+                valor =
+                    valor.substring(0, 3) +
+                    "." +
+                    valor.substring(3, 6) +
+                    "." +
+                    valor.substring(6);
+
+            }
+
+            else if (valor.length > 3) {
+
+                valor =
+                    valor.substring(0, 3) +
+                    "." +
+                    valor.substring(3);
+
+            }
+
+        }
+
+
+        /* CNPJ */
+
+        else {
+
+            valor =
+                valor.substring(0, 2) +
+                "." +
+                valor.substring(2, 5) +
+                "." +
+                valor.substring(5, 8) +
+                "/" +
+                valor.substring(8, 12) +
+                "-" +
+                valor.substring(12);
+
+        }
+
+        this.value = valor;
+
+    });
+
+}
+
+
+/* ============================================================
+   CONFIRMAÇÃO DE EXCLUSÃO
+   ============================================================ */
+
+function confirmarExclusao(nome) {
+
+    return confirm(
+        "Tem certeza que deseja apagar o cliente:\n\n" +
+        nome +
+        "\n\nEssa operação não poderá ser desfeita."
+    );
+
+}
+
+
+/* ============================================================
+   FOCO NO NOME AO ABRIR A TELA
+   ============================================================ */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const nome = document.getElementById("nome");
+
+    if (nome && !nome.value) {
+        nome.focus();
+    }
+
+});
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Estoque - MERCOPLACAS{% endblock %}
+
+{% block content %}
+<style>
+    .estoque-pagina{padding:24px}.estoque-cabecalho{margin-bottom:20px}.estoque-cabecalho h1{margin:0 0 5px}.estoque-cabecalho p{margin:0;opacity:.7}
+    .estoque-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.estoque-card{background:#fff;border-radius:14px;padding:20px;margin-bottom:20px;box-shadow:0 4px 18px rgba(0,0,0,.06)}
+    .estoque-card h2{margin-top:0}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.campo{display:flex;flex-direction:column;gap:6px}.campo label{font-weight:600;font-size:13px}.campo input,.campo select,.campo textarea{padding:11px 12px;border:1px solid #d7dce2;border-radius:9px;font:inherit;box-sizing:border-box}.campo textarea{min-height:80px;resize:vertical}.campo-full{grid-column:1/-1}
+    .btn{border:0;border-radius:9px;padding:11px 15px;text-decoration:none;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;justify-content:center}.btn-principal{background:#1e3a5f;color:#fff}.btn-secundario{background:#eef1f5;color:#263342}.btn-editar{background:#e8f0ff;color:#1e3a5f}.btn-excluir{background:#fdeaea;color:#a51d2d}.acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .tabela-wrap{overflow-x:auto}.tabela{width:100%;border-collapse:collapse}.tabela th,.tabela td{padding:11px 9px;border-bottom:1px solid #e8ebef;text-align:left;white-space:nowrap}.tabela th{background:#f7f8fa;font-size:13px}.baixo{font-weight:700}.sem{padding:25px;text-align:center;opacity:.6}.tipo-entrada{font-weight:700}.tipo-saida{font-weight:700}.numero{font-weight:700}
+    @media(max-width:900px){.estoque-grid{grid-template-columns:1fr}}@media(max-width:600px){.estoque-pagina{padding:15px}.form-grid{grid-template-columns:1fr}.campo-full{grid-column:auto}}
+</style>
+
+<div class="estoque-pagina">
+    <div class="estoque-cabecalho">
+        <h1>Controle de Estoque</h1>
+        <p>Cadastre os insumos, registre entradas e saídas e acompanhe o estoque atual.</p>
+    </div>
+
+    <div class="estoque-grid">
+        <div class="estoque-card">
+            <h2>Cadastro de item</h2>
+            <form method="POST" action="{{ url_for('estoque') }}">
+                <input type="hidden" name="acao" value="cadastrar">
+                <div class="form-grid">
+                    <div class="campo"><label>Nome do item</label><input type="text" name="nome" placeholder="Ex.: Ribbon" required></div>
+                    <div class="campo"><label>Categoria</label><input type="text" name="categoria" placeholder="Ex.: Insumo"></div>
+                    <div class="campo"><label>Quantidade inicial</label><input type="number" name="quantidade" min="0" step="0.01" value="0" required></div>
+                    <div class="campo"><label>Estoque mínimo</label><input type="number" name="estoque_minimo" min="0" step="0.01" value="0" required></div>
+                </div>
+                <div class="acoes"><button class="btn btn-principal" type="submit">+ Cadastrar item</button></div>
+            </form>
+        </div>
+
+        <div class="estoque-card">
+            <h2>Movimentar estoque</h2>
+            <form method="POST" action="{{ url_for('estoque') }}">
+                <input type="hidden" name="acao" value="movimentar">
+                <div class="form-grid">
+                    <div class="campo campo-full"><label>Item</label><select name="estoque_id" required><option value="">Selecione...</option>{% for item in estoque %}<option value="{{ item.id }}">{{ item.nome }} — atual: {{ "%.2f"|format(item.quantidade) }}</option>{% endfor %}</select></div>
+                    <div class="campo"><label>Tipo</label><select name="tipo" required><option value="ENTRADA">Entrada</option><option value="SAIDA">Saída</option></select></div>
+                    <div class="campo"><label>Data</label><input type="date" name="data" value="{{ hoje }}" required></div>
+                    <div class="campo"><label>Quantidade</label><input type="number" name="quantidade" min="0.01" step="0.01" required></div>
+                    <div class="campo"><label>Observação</label><input type="text" name="observacao" placeholder="Ex.: Compra de material"></div>
+                </div>
+                <div class="acoes"><button class="btn btn-principal" type="submit">Registrar movimentação</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="estoque-card">
+        <h2>Estoque atual</h2>
+        <div class="tabela-wrap">
+            <table class="tabela"><thead><tr><th>Item</th><th>Categoria</th><th>Quantidade</th><th>Mínimo</th><th>Situação</th><th>Ações</th></tr></thead><tbody>
+            {% for item in estoque %}
+            <tr>
+                <td><strong>{{ item.nome }}</strong></td><td>{{ item.categoria or '-' }}</td><td class="numero">{{ "%.2f"|format(item.quantidade) }}</td><td>{{ "%.2f"|format(item.estoque_minimo) }}</td>
+                <td>{% if item.quantidade <= 0 %}<span class="baixo">SEM ESTOQUE</span>{% elif item.quantidade <= item.estoque_minimo and item.estoque_minimo > 0 %}<span class="baixo">ESTOQUE BAIXO</span>{% else %}NORMAL{% endif %}</td>
+                <td><div class="acoes" style="margin:0"><a class="btn btn-editar" href="{{ url_for('editar_estoque_rota', estoque_id=item.id) }}">✎ Editar</a><form method="POST" action="{{ url_for('excluir_estoque_rota', estoque_id=item.id) }}" onsubmit="return confirm('Deseja realmente excluir este item?');"><button class="btn btn-excluir" type="submit">Excluir</button></form></div></td>
+            </tr>
+            {% else %}<tr><td colspan="6" class="sem">Nenhum item cadastrado.</td></tr>{% endfor %}
+            </tbody></table>
+        </div>
+    </div>
+
+    <div class="estoque-card">
+        <h2>Histórico de movimentações</h2>
+        <div class="tabela-wrap">
+            <table class="tabela"><thead><tr><th>Data</th><th>Item</th><th>Tipo</th><th>Quantidade</th><th>Observação</th><th>Responsável</th></tr></thead><tbody>
+            {% for mov in movimentacoes %}
+            <tr><td>{% set p=mov.data.split('-') %}{{ p[2] }}/{{ p[1] }}/{{ p[0] }}</td><td>{{ mov.estoque_nome or '-' }}</td><td class="{{ 'tipo-entrada' if mov.tipo == 'ENTRADA' else 'tipo-saida' }}">{{ 'ENTRADA' if mov.tipo == 'ENTRADA' else 'SAÍDA' }}</td><td>{{ "%.2f"|format(mov.quantidade) }}</td><td>{{ mov.observacao or '-' }}</td><td>{{ mov.usuario_nome or 'Não informado' }}</td></tr>
+            {% else %}<tr><td colspan="6" class="sem">Nenhuma movimentação registrada.</td></tr>{% endfor %}
+            </tbody></table>
+        </div>
+    </div>
+</div>
+{% endblock %}

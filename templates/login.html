@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block login_content %}
+
+<div class="login-page">
+
+    <div class="login-background">
+
+        <div class="login-decoration decoration-1"></div>
+        <div class="login-decoration decoration-2"></div>
+        <div class="login-decoration decoration-3"></div>
+
+    </div>
+
+    <div class="login-container">
+
+        <div class="login-card">
+
+            <!-- LOGO -->
+            <div class="login-header">
+
+                <div class="login-logo">
+                    🚘
+                </div>
+
+                <div class="login-brand">
+                    <h1>MERCOPLACAS</h1>
+                    <span>SISTEMA DE GESTÃO</span>
+                </div>
+
+            </div>
+
+            <!-- TÍTULO -->
+            <div class="login-title">
+
+                <h2>Bem-vindo!</h2>
+
+                <p>
+                    Acesse sua conta para continuar
+                </p>
+
+            </div>
+
+            <!-- FORMULÁRIO -->
+            <form method="POST" class="login-form">
+
+                <div class="login-campo">
+
+                    <label for="usuario">
+                        Usuário
+                    </label>
+
+                    <div class="login-input">
+
+                        <span class="input-icon">
+                            👤
+                        </span>
+
+                        <input
+                            type="text"
+                            id="usuario"
+                            name="usuario"
+                            placeholder="Digite seu usuário"
+                            autocomplete="username"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+                <div class="login-campo">
+
+                    <label for="senha">
+                        Senha
+                    </label>
+
+                    <div class="login-input">
+
+                        <span class="input-icon">
+                            🔒
+                        </span>
+
+                        <input
+                            type="password"
+                            id="senha"
+                            name="senha"
+                            placeholder="Digite sua senha"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="login-botao"
+                >
+
+                    <span>Entrar no sistema</span>
+
+                    <strong>→</strong>
+
+                </button>
+
+            </form>
+
+            <!-- ACESSO -->
+            <div class="login-info">
+
+                <div class="login-info-icon">
+                    ✓
+                </div>
+
+                <div>
+
+                    <span>Acesso administrativo</span>
+
+                    <small>
+                        Sistema protegido por autenticação
+                    </small>
+
+                </div>
+
+            </div>
+
+            <!-- RODAPÉ -->
+            <div class="login-footer">
+
+                <span>
+                    © 2026 MERCOPLACAS
+                </span>
+
+                <span>
+                    Campo Belo - MG
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

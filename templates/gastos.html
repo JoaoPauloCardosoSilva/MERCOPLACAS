@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Gastos - MERCOPLACAS{% endblock %}
+
+{% block content %}
+<style>
+    .gastos-pagina { padding: 24px; }
+    .gastos-cabecalho { display:flex; justify-content:space-between; align-items:center; gap:20px; margin-bottom:20px; }
+    .gastos-cabecalho h1 { margin:0 0 5px; }
+    .gastos-cabecalho p { margin:0; opacity:.7; }
+    .gastos-card { background:#fff; border-radius:14px; padding:20px; margin-bottom:20px; box-shadow:0 4px 18px rgba(0,0,0,.06); }
+    .gastos-form-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+    .gastos-form-grid .campo { display:flex; flex-direction:column; gap:6px; }
+    .gastos-form-grid .campo-descricao { grid-column:span 2; }
+    .gastos-form-grid label, .filtro-gastos label { font-weight:600; font-size:13px; }
+    .gastos-form-grid input, .gastos-form-grid select, .filtro-gastos input { padding:11px 12px; border:1px solid #d7dce2; border-radius:9px; font:inherit; box-sizing:border-box; }
+    .gastos-acoes, .filtro-acoes { display:flex; align-items:end; gap:10px; flex-wrap:wrap; }
+    .btn-gasto { border:0; border-radius:9px; padding:11px 16px; text-decoration:none; cursor:pointer; font-weight:600; display:inline-flex; align-items:center; justify-content:center; }
+    .btn-principal-gasto { background:#1e3a5f; color:#fff; }
+    .btn-secundario-gasto { background:#eef1f5; color:#263342; }
+    .btn-editar-gasto { background:#e8f0ff; color:#1e3a5f; }
+    .btn-excluir-gasto { background:#fdeaea; color:#a51d2d; }
+    .filtro-gastos { display:grid; grid-template-columns:180px 180px 1fr; gap:14px; align-items:end; }
+    .filtro-campo { display:flex; flex-direction:column; gap:6px; }
+    .tabela-gastos-wrap { overflow-x:auto; }
+    .tabela-gastos { width:100%; border-collapse:collapse; }
+    .tabela-gastos th, .tabela-gastos td { padding:12px 10px; border-bottom:1px solid #e8ebef; text-align:left; }
+    .tabela-gastos th { font-size:13px; background:#f7f8fa; }
+    .tabela-gastos td.valor { font-weight:700; white-space:nowrap; }
+    .acoes-gasto { display:flex; gap:7px; align-items:center; }
+    .acoes-gasto form { margin:0; }
+    .sem-gastos { text-align:center; padding:30px; opacity:.65; }
+    @media (max-width: 900px) {
+        .gastos-form-grid { grid-template-columns:1fr 1fr; }
+        .gastos-form-grid .campo-descricao { grid-column:span 2; }
+        .filtro-gastos { grid-template-columns:1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+        .gastos-pagina { padding:15px; }
+        .gastos-form-grid, .filtro-gastos { grid-template-columns:1fr; }
+        .gastos-form-grid .campo-descricao { grid-column:span 1; }
+        .gastos-cabecalho { align-items:flex-start; flex-direction:column; }
+    }
+</style>
+
+<div class="gastos-pagina">
+    <div class="gastos-cabecalho">
+        <div>
+            <h1>Gastos</h1>
+            <p>Cadastre e controle as despesas da MERCOPLACAS.</p>
+        </div>
+    </div>
+
+    <div class="gastos-card">
+        <h2>Novo gasto</h2>
+        <form method="POST" action="{{ url_for('gastos') }}">
+            <div class="gastos-form-grid">
+                <div class="campo">
+                    <label for="data">Data</label>
+                    <input type="date" id="data" name="data" value="{{ hoje }}" required>
+                </div>
+                <div class="campo">
+                    <label for="categoria">Categoria</label>
+                    <select id="categoria" name="categoria" required>
+                        <option value="">Selecione</option>
+                        <option>Parafusos</option>
+                        <option>Compras</option>
+                        <option>Funcionários</option>
+                        <option>Água</option>
+                        <option>Luz</option>
+                        <option>Internet</option>
+                        <option>Telefone</option>
+                        <option>Aluguel</option>
+                        <option>Outras despesas</option>
+                    </select>
+                </div>
+                <div class="campo campo-descricao">
+                    <label for="descricao">Descrição</label>
+                    <input type="text" id="descricao" name="descricao" placeholder="Descrição do gasto">
+                </div>
+                <div class="campo">
+                    <label for="valor">Valor</label>
+                    <input type="number" id="valor" name="valor" min="0" step="0.01" placeholder="0,00" required>
+                </div>
+                <div class="gastos-acoes">
+                    <button type="submit" class="btn-gasto btn-principal-gasto">+ Cadastrar gasto</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="gastos-card">
+        <h2>Gastos do período</h2>
+        <form method="GET" action="{{ url_for('gastos') }}" class="filtro-gastos">
+            <div class="filtro-campo">
+                <label for="data_inicio">Data inicial</label>
+                <input type="date" id="data_inicio" name="data_inicio" value="{{ data_inicio }}">
+            </div>
+            <div class="filtro-campo">
+                <label for="data_fim">Data final</label>
+                <input type="date" id="data_fim" name="data_fim" value="{{ data_fim }}">
+            </div>
+            <div class="filtro-acoes">
+                <button type="submit" class="btn-gasto btn-principal-gasto">Filtrar</button>
+                <a href="{{ url_for('gastos') }}" class="btn-gasto btn-secundario-gasto">Limpar</a>
+                <a href="{{ url_for('gastos', data_inicio=hoje, data_fim=hoje) }}" class="btn-gasto btn-secundario-gasto">Hoje</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="gastos-card">
+        <div class="tabela-gastos-wrap">
+            <table class="tabela-gastos">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Categoria</th>
+                        <th>Descrição</th>
+                        <th>Valor</th>
+                        <th>Responsável</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for gasto in gastos %}
+                    <tr>
+                        <td>
+                            {% if gasto.data %}
+                                {% set partes = gasto.data.split('-') %}
+                                {% if partes|length == 3 %}
+                                    {{ partes[2] }}/{{ partes[1] }}/{{ partes[0] }}
+                                {% else %}{{ gasto.data }}{% endif %}
+                            {% endif %}
+                        </td>
+                        <td>{{ gasto.categoria or '-' }}</td>
+                        <td>{{ gasto.descricao or '-' }}</td>
+                        <td class="valor">R$ {{ "%.2f"|format(gasto.valor or 0) }}</td>
+                        <td>{{ gasto.usuario_nome or 'Não informado' }}</td>
+                        <td>
+                            <div class="acoes-gasto">
+                                <a href="{{ url_for('editar_gasto_rota', gasto_id=gasto.id) }}" class="btn-gasto btn-editar-gasto">✎ Editar</a>
+                                <form method="POST" action="{{ url_for('excluir_gasto_rota', gasto_id=gasto.id) }}" onsubmit="return confirm('Deseja realmente excluir este gasto?');">
+                                    <button type="submit" class="btn-gasto btn-excluir-gasto">Excluir</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="sem-gastos">Nenhum gasto encontrado no período.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

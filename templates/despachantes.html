@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="pagina-despachantes">
+
+    <!-- CABEÇALHO -->
+    <div class="titulo-pagina">
+        <div>
+            <span class="subtitulo-sistema">GESTÃO DE CADASTROS</span>
+            <h1>Despachantes</h1>
+            <p>Cadastro e controle dos despachantes da MERCOPLACAS</p>
+        </div>
+    </div>
+
+
+    <!-- INDICADORES -->
+    <div class="indicadores-despachantes">
+
+        <div class="indicador-despachante">
+            <div class="indicador-icone">👥</div>
+            <div>
+                <span>Total</span>
+                <strong>{{ despachantes|length }}</strong>
+            </div>
+        </div>
+
+        <div class="indicador-despachante">
+            <div class="indicador-icone">📞</div>
+            <div>
+                <span>Com telefone</span>
+                <strong>
+                    {{ despachantes|selectattr('telefone')|list|length }}
+                </strong>
+            </div>
+        </div>
+
+        <div class="indicador-despachante">
+            <div class="indicador-icone">📝</div>
+            <div>
+                <span>Com observações</span>
+                <strong>
+                    {{ despachantes|selectattr('observacoes')|list|length }}
+                </strong>
+            </div>
+        </div>
+
+        <div class="indicador-despachante">
+            <div class="indicador-icone">✅</div>
+            <div>
+                <span>Cadastrados</span>
+                <strong>{{ despachantes|length }}</strong>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ÁREA PRINCIPAL -->
+    <div class="layout-despachantes">
+
+        <!-- FORMULÁRIO -->
+        <div class="card-despachante-form">
+
+            <div class="titulo-card-despachante">
+                <div class="icone-titulo">👤</div>
+
+                <div>
+                    <h2>Novo despachante</h2>
+                    <p>Preencha os dados para realizar o cadastro.</p>
+                </div>
+            </div>
+
+
+            <form
+                method="POST"
+                action="{{ url_for('despachantes') }}"
+                class="form-despachante"
+            >
+
+                <!-- NOME -->
+                <div class="campo-despachante campo-completo">
+
+                    <label for="nome">
+                        Nome do despachante
+                    </label>
+
+                    <input
+                        type="text"
+                        id="nome"
+                        name="nome"
+                        placeholder="Digite o nome completo"
+                        autocomplete="off"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- TELEFONE -->
+                <div class="campo-despachante">
+
+                    <label for="telefone">
+                        Telefone
+                    </label>
+
+                    <input
+                        type="text"
+                        id="telefone"
+                        name="telefone"
+                        placeholder="(35) 99999-9999"
+                        maxlength="15"
+                        inputmode="numeric"
+                    >
+
+                    <small>
+                        Informe o telefone para contato.
+                    </small>
+
+                </div>
+
+
+                <!-- OBSERVAÇÕES -->
+                <div class="campo-despachante">
+
+                    <label for="observacoes">
+                        Observações
+                    </label>
+
+                    <input
+                        type="text"
+                        id="observacoes"
+                        name="observacoes"
+                        placeholder="Ex.: escritório, região de atendimento..."
+                    >
+
+                </div>
+
+
+                <!-- BOTÕES -->
+                <div class="botoes-despachante">
+
+                    <button
+                        type="submit"
+                        class="btn-despachante-salvar"
+                    >
+                        💾 Cadastrar despachante
+                    </button>
+
+                    <button
+                        type="reset"
+                        class="btn-despachante-limpar"
+                    >
+                        🧹 Limpar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+
+        <!-- INFORMAÇÕES -->
+        <div class="card-info-despachante">
+
+            <div class="info-icone">💼</div>
+
+            <h2>Controle de despachantes</h2>
+
+            <p>
+                Mantenha os contatos dos despachantes organizados
+                para facilitar o lançamento e acompanhamento das vendas.
+            </p>
+
+            <div class="info-linha">
+                <span>👥</span>
+                <div>
+                    <strong>Cadastro organizado</strong>
+                    <small>Tenha todos os contatos em um único lugar.</small>
+                </div>
+            </div>
+
+            <div class="info-linha">
+                <span>📞</span>
+                <div>
+                    <strong>Contato rápido</strong>
+                    <small>Consulte facilmente o telefone cadastrado.</small>
+                </div>
+            </div>
+
+            <div class="info-linha">
+                <span>📊</span>
+                <div>
+                    <strong>Relatórios</strong>
+                    <small>Os despachantes podem ser utilizados nos relatórios de vendas.</small>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- LISTA -->
+    <div class="card-lista-despachantes">
+
+        <div class="cabecalho-lista-despachantes">
+
+            <div>
+                <span class="subtitulo-lista">REGISTROS</span>
+
+                <h2>Despachantes cadastrados</h2>
+
+                <p>
+                    Lista de todos os despachantes registrados no sistema.
+                </p>
+            </div>
+
+            <div class="contador-despachantes">
+                <strong>{{ despachantes|length }}</strong>
+                <span>registro(s)</span>
+            </div>
+
+        </div>
+
+
+        <div class="tabela-container-despachantes">
+
+            <table class="tabela-despachantes">
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>DESPACHANTE</th>
+                        <th>TELEFONE</th>
+                        <th>OBSERVAÇÕES</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for d in despachantes %}
+
+                    <tr>
+
+                        <td>
+                            <span class="id-despachante">
+                                #{{ d.id }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="nome-despachante">
+
+                                <div class="avatar-despachante">
+                                    {{ d.nome[0]|upper }}
+                                </div>
+
+                                <div>
+                                    <strong>{{ d.nome }}</strong>
+                                    <small>Despachante</small>
+                                </div>
+
+                            </div>
+                        </td>
+
+                        <td>
+
+                            {% if d.telefone %}
+
+                                <span class="telefone-despachante">
+                                    📞 {{ d.telefone }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="sem-informacao">
+                                    Não informado
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            {% if d.observacoes %}
+
+                                <span class="observacao-despachante">
+                                    {{ d.observacoes }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="sem-informacao">
+                                    Sem observações
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            <span class="status-despachante">
+                                ● Ativo
+                            </span>
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+
+                        <td
+                            colspan="5"
+                            class="sem-despachantes"
+                        >
+
+                            <div class="sem-despachantes-icone">
+                                👤
+                            </div>
+
+                            <strong>
+                                Nenhum despachante cadastrado
+                            </strong>
+
+                            <p>
+                                Cadastre o primeiro despachante
+                                utilizando o formulário acima.
+                            </p>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- MÁSCARA DE TELEFONE -->
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const telefone = document.getElementById("telefone");
+
+    if (!telefone) {
+        return;
+    }
+
+    telefone.addEventListener("input", function () {
+
+        let valor = this.value.replace(/\D/g, "");
+
+        if (valor.length > 11) {
+            valor = valor.substring(0, 11);
+        }
+
+
+        /* CELULAR */
+
+        if (valor.length > 10) {
+
+            valor =
+                "(" +
+                valor.substring(0, 2) +
+                ") " +
+                valor.substring(2, 7) +
+                "-" +
+                valor.substring(7);
+
+        }
+
+
+        /* TELEFONE FIXO */
+
+        else if (valor.length > 6) {
+
+            valor =
+                "(" +
+                valor.substring(0, 2) +
+                ") " +
+                valor.substring(2, 6) +
+                "-" +
+                valor.substring(6);
+
+        }
+
+
+        /* DDD */
+
+        else if (valor.length > 2) {
+
+            valor =
+                "(" +
+                valor.substring(0, 2) +
+                ") " +
+                valor.substring(2);
+
+        }
+
+
+        /* COMEÇO */
+
+        else if (valor.length > 0) {
+
+            valor = "(" + valor;
+
+        }
+
+        this.value = valor;
+
+    });
+
+});
+
+</script>
+
+{% endblock %}

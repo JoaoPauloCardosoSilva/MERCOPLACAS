@@ -1,0 +1,738 @@
+```html
+{% extends "base.html" %}
+
+{% block title %}Relatórios - MERCOPLACAS{% endblock %}
+
+{% block content %}
+
+<div class="pagina">
+
+    <!-- CABEÇALHO -->
+    <div class="pagina-cabecalho">
+        <div>
+            <span class="pagina-cabecalho-etiqueta">GESTÃO</span>
+            <h1>Relatórios</h1>
+            <p>Consulte vendas, gastos, despachantes e contas pendentes.</p>
+        </div>
+
+        {% if resultado %}
+        <div class="botoes-relatorio">
+            <button type="button" class="btn-imprimir" onclick="window.print()">
+                🖨️ Imprimir
+            </button>
+
+            {% if resultado.tipo == "vendas" and data_inicio and data_fim %}
+            <a
+                href="{{ url_for(
+                    'relatorio_vendas_pdf',
+                    data_inicio=data_inicio,
+                    data_fim=data_fim
+                ) }}"
+                class="btn-relatorio-pdf"
+                target="_blank"
+            >
+                📄 Gerar PDF
+            </a>
+            {% endif %}
+
+            {% if resultado.tipo == "gastos" and data_inicio and data_fim %}
+            <a
+                href="{{ url_for(
+                    'relatorio_gastos_pdf',
+                    data_inicio=data_inicio,
+                    data_fim=data_fim
+                ) }}"
+                class="btn-relatorio-pdf"
+                target="_blank"
+            >
+                📄 Gerar PDF
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+
+    <!-- FILTROS -->
+    <div class="relatorio-painel relatorio-filtros">
+
+        <div class="relatorio-painel-titulo">
+            <div class="relatorio-icone">🔎</div>
+            <div>
+                <h2>Filtros do relatório</h2>
+                <p>Escolha o relatório e o período desejado.</p>
+            </div>
+        </div>
+
+        <form method="POST">
+
+            <div class="relatorio-filtros-grid">
+
+                <div class="campo">
+                    <label for="tipo">Tipo de relatório</label>
+
+                    <select name="tipo" id="tipo" required onchange="mostrarDespachante()">
+
+                        <option value="">Selecione...</option>
+
+                        <option value="vendas"
+                            {% if resultado and resultado.tipo == "vendas" %}selected{% endif %}>
+                            📊 Vendas por período
+                        </option>
+
+                        <option value="gastos"
+                            {% if resultado and resultado.tipo == "gastos" %}selected{% endif %}>
+                            💰 Gastos por período
+                        </option>
+
+                        <option value="despachantes"
+                            {% if resultado and resultado.tipo == "despachantes" %}selected{% endif %}>
+                            👤 Vendas por despachante
+                        </option>
+
+                        <option value="pendentes"
+                            {% if resultado and resultado.tipo == "pendentes" %}selected{% endif %}>
+                            ⚠️ Contas pendentes
+                        </option>
+
+                    </select>
+                </div>
+
+
+                <div class="campo campo-data">
+                    <label for="data_inicio">Data inicial</label>
+                    <input
+                        type="date"
+                        name="data_inicio"
+                        id="data_inicio"
+                        value="{{ data_inicio or '' }}"
+                    >
+                </div>
+
+
+                <div class="campo campo-data">
+                    <label for="data_fim">Data final</label>
+                    <input
+                        type="date"
+                        name="data_fim"
+                        id="data_fim"
+                        value="{{ data_fim or '' }}"
+                    >
+                </div>
+
+
+                <div class="campo campo-despachante" id="campoDespachante">
+                    <label for="despachante_id">Despachante</label>
+
+                    <select name="despachante_id" id="despachante_id">
+
+                        <option value="">Todos os despachantes</option>
+
+                        {% for despachante in despachantes %}
+
+                        <option
+                            value="{{ despachante.id }}"
+                            {% if despachante_id|string == despachante.id|string %}selected{% endif %}
+                        >
+                            {{ despachante.nome }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+            </div>
+
+
+            <div class="relatorio-acoes">
+
+                <button type="submit" class="btn btn-principal">
+                    📊 Gerar relatório
+                </button>
+
+                <a href="{{ url_for('relatorios') }}" class="btn btn-secundario">
+                    ↻ Limpar
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- ÁREA DE IMPRESSÃO -->
+    <div class="relatorio-impressao">
+
+        {% if resultado %}
+
+        <div class="relatorio-titulo-impressao">
+            <h1>MERCOPLACAS CAMPO BELO</h1>
+            <h2>Relatório</h2>
+
+            {% if data_inicio or data_fim %}
+            <p>
+                Período:
+                {{ data_inicio or 'Início' }}
+                até
+                {{ data_fim or 'Atual' }}
+            </p>
+            {% endif %}
+        </div>
+
+
+        <!-- =====================================================
+             RELATÓRIO DE VENDAS
+             ===================================================== -->
+
+        {% if resultado.tipo == "vendas" %}
+
+        <div class="relatorio-cabecalho-resultado">
+            <div>
+                <span>RELATÓRIO</span>
+                <h2>Vendas por período</h2>
+            </div>
+        </div>
+
+
+        <div class="relatorio-cards">
+
+            <div class="relatorio-card">
+                <div class="relatorio-card-icone">🧾</div>
+                <div>
+                    <span>Total de vendas</span>
+                    <strong>{{ resultado.resumo.total_vendas }}</strong>
+                </div>
+            </div>
+
+            <div class="relatorio-card">
+                <div class="relatorio-card-icone">💵</div>
+                <div>
+                    <span>Valor bruto</span>
+                    <strong>
+                        R$ {{ "%.2f"|format(resultado.resumo.valor_bruto or 0) }}
+                    </strong>
+                </div>
+            </div>
+
+            <div class="relatorio-card">
+                <div class="relatorio-card-icone">📈</div>
+                <div>
+                    <span>Valor líquido</span>
+                    <strong>
+                        R$ {{ "%.2f"|format(resultado.resumo.valor_liquido or 0) }}
+                    </strong>
+                </div>
+            </div>
+
+            <div class="relatorio-card destaque">
+                <div class="relatorio-card-icone">💰</div>
+                <div>
+                    <span>Resultado</span>
+                    <strong>
+                        R$ {{ "%.2f"|format(
+                            (resultado.resumo.valor_liquido or 0)
+                            ) }}
+                    </strong>
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="relatorio-painel">
+
+            <div class="relatorio-painel-titulo">
+                <div class="relatorio-icone">📋</div>
+
+                <div>
+                    <h2>Detalhamento das vendas</h2>
+                    <p>Lista de vendas realizadas no período.</p>
+                </div>
+            </div>
+
+
+            <div class="tabela-container">
+
+                <table class="tabela-relatorio">
+
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Despachante</th>
+                            <th>Cliente</th>
+                            <th>Placa</th>
+                            <th>Serviço</th>
+                            <th>Pagamento</th>
+                            <th>Status</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for venda in resultado.vendas %}
+
+                        <tr>
+
+                            <td>{{ venda.data }}</td>
+
+                            <td>
+                                {{ venda.despachante_nome or 'Não informado' }}
+                            </td>
+
+                            <td>
+                                {{ venda.cliente_nome or 'Não informado' }}
+                            </td>
+
+                            <td>
+                                <strong>{{ venda.placa }}</strong>
+                            </td>
+
+                            <td>{{ venda.servico }}</td>
+
+                            <td>
+                                {{ venda.forma_pagamento or '-' }}
+                            </td>
+
+                            <td>
+
+                                {% if venda.pago %}
+                                    <span class="status-relatorio pago">
+                                        PAGO
+                                    </span>
+                                {% else %}
+                                    <span class="status-relatorio pendente">
+                                        PENDENTE
+                                    </span>
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+                                <strong>
+                                    R$ {{ "%.2f"|format(venda.valor or 0) }}
+                                </strong>
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+                            <td colspan="8" class="tabela-vazia">
+                                Nenhuma venda encontrada no período.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             RELATÓRIO DE GASTOS
+             ===================================================== -->
+
+        {% elif resultado.tipo == "gastos" %}
+
+        <div class="relatorio-cabecalho-resultado">
+            <div>
+                <span>RELATÓRIO</span>
+                <h2>Gastos por período</h2>
+            </div>
+        </div>
+
+
+        <div class="relatorio-cards">
+
+            <div class="relatorio-card">
+                <div class="relatorio-card-icone">🧾</div>
+                <div>
+                    <span>Total de gastos</span>
+                    <strong>{{ resultado.resumo.total_gastos }}</strong>
+                </div>
+            </div>
+
+            <div class="relatorio-card destaque">
+                <div class="relatorio-card-icone">💸</div>
+                <div>
+                    <span>Valor total</span>
+                    <strong>
+                        R$ {{ "%.2f"|format(resultado.resumo.valor_total or 0) }}
+                    </strong>
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="relatorio-painel">
+
+            <div class="relatorio-painel-titulo">
+                <div class="relatorio-icone">💸</div>
+
+                <div>
+                    <h2>Detalhamento dos gastos</h2>
+                    <p>Despesas registradas no período.</p>
+                </div>
+            </div>
+
+
+            <div class="tabela-container">
+
+                <table class="tabela-relatorio">
+
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Categoria</th>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for gasto in resultado.gastos %}
+
+                        <tr>
+
+                            <td>{{ gasto.data }}</td>
+
+                            <td>
+                                <strong>{{ gasto.categoria }}</strong>
+                            </td>
+
+                            <td>
+                                {{ gasto.descricao or '-' }}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    R$ {{ "%.2f"|format(gasto.valor or 0) }}
+                                </strong>
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+                            <td colspan="4" class="tabela-vazia">
+                                Nenhum gasto encontrado no período.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             RELATÓRIO POR DESPACHANTE
+             ===================================================== -->
+
+        {% elif resultado.tipo == "despachantes" %}
+
+        <div class="relatorio-cabecalho-resultado">
+            <div>
+                <span>RELATÓRIO</span>
+                <h2>Vendas por despachante</h2>
+            </div>
+        </div>
+
+
+        <div class="relatorio-painel">
+
+            <div class="relatorio-painel-titulo">
+                <div class="relatorio-icone">👤</div>
+
+                <div>
+                    <h2>Desempenho dos despachantes</h2>
+                    <p>
+                        Quantidade e valores das vendas realizadas.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="tabela-container">
+
+                <table class="tabela-relatorio">
+
+                    <thead>
+                        <tr>
+                            <th>Despachante</th>
+                            <th>Quantidade</th>
+                            <th>Valor bruto</th>
+                            <th>Valor líquido</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in resultado.dados %}
+
+                        <tr>
+
+                            <td>
+                                <strong>
+                                    {{ item.despachante_nome or 'Não informado' }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ item.total_vendas }}
+                            </td>
+
+                            <td>
+                                R$ {{ "%.2f"|format(item.valor_bruto or 0) }}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    R$ {{ "%.2f"|format(item.valor_liquido or 0) }}
+                                </strong>
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+                            <td colspan="4" class="tabela-vazia">
+                                Nenhum dado encontrado.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             CONTAS PENDENTES
+             ===================================================== -->
+
+        {% elif resultado.tipo == "pendentes" %}
+
+        <div class="relatorio-cabecalho-resultado">
+            <div>
+                <span>FINANCEIRO</span>
+                <h2>Contas pendentes</h2>
+            </div>
+        </div>
+
+
+        <div class="relatorio-painel">
+
+            <div class="relatorio-painel-titulo">
+                <div class="relatorio-icone">⚠️</div>
+
+                <div>
+                    <h2>Vendas pendentes</h2>
+                    <p>
+                        Vendas que ainda estão marcadas como não pagas.
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="tabela-container">
+
+                <table class="tabela-relatorio">
+
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Cliente</th>
+                            <th>Placa</th>
+                            <th>Serviço</th>
+                            <th>Despachante</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for venda in resultado.pendentes %}
+
+                        <tr>
+
+                            <td>{{ venda.data }}</td>
+
+                            <td>
+                                {{ venda.cliente_nome or 'Não informado' }}
+                            </td>
+
+                            <td>
+                                <strong>{{ venda.placa }}</strong>
+                            </td>
+
+                            <td>{{ venda.servico }}</td>
+
+                            <td>
+                                {{ venda.despachante_nome or 'Não informado' }}
+                            </td>
+
+                            <td>
+                                <strong>
+                                    R$ {{ "%.2f"|format(venda.valor or 0) }}
+                                </strong>
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+                            <td colspan="6" class="tabela-vazia">
+                                🎉 Não existem contas pendentes.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<style>
+.botoes-relatorio {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-relatorio-pdf,
+.btn-imprimir {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.btn-relatorio-pdf {
+    background: #1e3a5f;
+    color: white;
+}
+
+.btn-relatorio-pdf:hover {
+    opacity: 0.9;
+}
+
+.btn-imprimir {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+@media print {
+    .sidebar,
+    .topbar,
+    .relatorio-filtros,
+    .botoes-relatorio,
+    .pagina-cabecalho {
+        display: none !important;
+    }
+
+    .main-content,
+    .content,
+    .pagina {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    .relatorio-impressao {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    .relatorio-painel {
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+
+    table {
+        width: 100% !important;
+    }
+
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+}
+</style>
+
+<script>
+
+function mostrarDespachante() {
+
+    const tipo = document.getElementById("tipo");
+    const campo = document.getElementById("campoDespachante");
+
+    if (!tipo || !campo) {
+        return;
+    }
+
+    if (tipo.value === "despachantes") {
+        campo.style.display = "block";
+    } else {
+        campo.style.display = "none";
+    }
+}
+
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    mostrarDespachante();
+
+});
+
+</script>
+
+{% endblock %}
+```

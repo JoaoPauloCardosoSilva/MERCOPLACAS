@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="pagina usuarios-pagina">
+
+    <div class="pagina-cabecalho">
+        <div>
+            <span class="pagina-kicker">ADMINISTRAÇÃO</span>
+            <h1>Usuários</h1>
+            <p>Gerencie administradores e funcionários do MERCOPLACAS.</p>
+        </div>
+    </div>
+
+    <div class="usuarios-grid">
+
+        <section class="painel">
+            <div class="painel-cabecalho">
+                <div class="painel-icone">👤</div>
+                <div>
+                    <h2>
+                        {% if usuario_edicao %}
+                            Editar usuário
+                        {% else %}
+                            Novo usuário
+                        {% endif %}
+                    </h2>
+                    <p>Login individual e perfil de acesso.</p>
+                </div>
+            </div>
+
+            <form method="POST" class="formulario">
+
+                {% if usuario_edicao %}
+                    <input type="hidden" name="acao" value="editar">
+                    <input type="hidden" name="usuario_id" value="{{ usuario_edicao.id }}">
+                {% else %}
+                    <input type="hidden" name="acao" value="cadastrar">
+                {% endif %}
+
+                <div class="campo">
+                    <label>Nome completo</label>
+                    <input type="text" name="nome"
+                           value="{{ usuario_edicao.nome if usuario_edicao else '' }}"
+                           placeholder="Nome do usuário" required>
+                </div>
+
+                <div class="campo">
+                    <label>Nome de usuário</label>
+                    <input type="text" name="usuario"
+                           value="{{ usuario_edicao.usuario if usuario_edicao else '' }}"
+                           placeholder="Ex.: maria" required>
+                </div>
+
+                <div class="campo">
+                    <label>
+                        Senha
+                        {% if usuario_edicao %}
+                            <small>(deixe em branco para manter a atual)</small>
+                        {% endif %}
+                    </label>
+                    <input type="password" name="senha"
+                           placeholder="{% if usuario_edicao %}Nova senha{% else %}Digite a senha{% endif %}"
+                           {% if not usuario_edicao %}required{% endif %}>
+                </div>
+
+                <div class="campo">
+                    <label>Perfil</label>
+                    <select name="perfil" required>
+                        <option value="Funcionário"
+                            {% if not usuario_edicao or usuario_edicao.perfil == "Funcionário" %}selected{% endif %}>
+                            Funcionário
+                        </option>
+                        <option value="Administrador"
+                            {% if usuario_edicao and usuario_edicao.perfil == "Administrador" %}selected{% endif %}>
+                            Administrador
+                        </option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label>Status</label>
+                    <select name="ativo">
+                        <option value="1"
+                            {% if not usuario_edicao or usuario_edicao.ativo == 1 %}selected{% endif %}>
+                            Ativo
+                        </option>
+                        <option value="0"
+                            {% if usuario_edicao and usuario_edicao.ativo == 0 %}selected{% endif %}>
+                            Inativo
+                        </option>
+                    </select>
+                </div>
+
+                <div class="usuarios-botoes">
+                    <button type="submit" class="btn-salvar">
+                        💾
+                        {% if usuario_edicao %}Salvar alterações{% else %}Cadastrar usuário{% endif %}
+                    </button>
+
+                    {% if usuario_edicao %}
+                        <a href="{{ url_for('usuarios') }}" class="btn-limpar">
+                            Cancelar
+                        </a>
+                    {% else %}
+                        <button type="reset" class="btn-limpar">Limpar</button>
+                    {% endif %}
+                </div>
+
+            </form>
+        </section>
+
+        <section class="painel">
+            <div class="painel-cabecalho">
+                <div class="painel-icone">👥</div>
+                <div>
+                    <h2>Usuários cadastrados</h2>
+                    <p>{{ usuarios|length }} usuário(s) no sistema.</p>
+                </div>
+            </div>
+
+            <div class="tabela-container">
+                <table class="tabela">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Usuário</th>
+                            <th>Perfil</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for u in usuarios %}
+                        <tr>
+                            <td><strong>{{ u.nome }}</strong></td>
+                            <td>{{ u.usuario }}</td>
+                            <td>
+                                {% if u.perfil == "Administrador" %}
+                                    <span class="usuario-perfil administrador">Administrador</span>
+                                {% else %}
+                                    <span class="usuario-perfil funcionario">Funcionário</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.ativo %}
+                                    <span class="usuario-status ativo">ATIVO</span>
+                                {% else %}
+                                    <span class="usuario-status inativo">INATIVO</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="usuarios-acoes">
+
+                                    <a href="{{ url_for('usuarios', editar=u.id) }}"
+                                       class="acao-editar">
+                                        ✏️
+                                    </a>
+
+                                    <form method="POST">
+                                        <input type="hidden" name="acao" value="status">
+                                        <input type="hidden" name="usuario_id" value="{{ u.id }}">
+                                        <button type="submit" class="acao-status"
+                                                title="Ativar/Desativar">
+                                            {% if u.ativo %}🔴{% else %}🟢{% endif %}
+                                        </button>
+                                    </form>
+
+                                    <form method="POST"
+                                          onsubmit="return confirm('Deseja realmente excluir este usuário?');">
+                                        <input type="hidden" name="acao" value="excluir">
+                                        <input type="hidden" name="usuario_id" value="{{ u.id }}">
+                                        <button type="submit" class="acao-excluir">
+                                            🗑️
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="estado-vazio">
+                                👥 Nenhum usuário cadastrado.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <section class="usuarios-info">
+        <div>
+            <strong>🔐 Segurança</strong>
+            <span>As senhas são armazenadas de forma protegida e não ficam gravadas em texto puro.</span>
+        </div>
+        <div>
+            <strong>👑 Administrador</strong>
+            <span>Acesso completo ao sistema.</span>
+        </div>
+        <div>
+            <strong>👷 Funcionário</strong>
+            <span>Acesso a Vendas, Clientes, Despachantes, Gastos e Estoque.</span>
+        </div>
+    </section>
+
+</div>
+
+{% endblock %}

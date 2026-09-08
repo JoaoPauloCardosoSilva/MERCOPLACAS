@@ -1,0 +1,430 @@
+```html
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="pagina">
+
+    <!-- CABEÇALHO -->
+    <div class="titulo-pagina">
+        <div>
+            <h1>💰 Caixa</h1>
+            <p>Controle de abertura, movimentação e fechamento do caixa.</p>
+        </div>
+    </div>
+
+
+    <!-- =====================================================
+         CAIXAS
+    ====================================================== -->
+
+    {% if caixas %}
+
+        {% set caixa_atual = caixas[0] %}
+
+        {% if caixa_atual.status == "ABERTO" %}
+
+            <!-- STATUS -->
+            <div class="caixa-status aberto">
+                <div class="caixa-status-icone">
+                    💰
+                </div>
+
+                <div class="caixa-status-info">
+                    <span>STATUS DO CAIXA</span>
+                    <strong>CAIXA ABERTO</strong>
+                    <small>
+                        Aberto em {{ caixa_atual.data_abertura }}
+                    </small>
+                </div>
+
+                <div class="caixa-status-acoes">
+                    <span class="status-online">● Em operação</span>
+                </div>
+            </div>
+
+
+            <!-- RESUMO -->
+            <div class="caixa-cards">
+
+                <div class="caixa-card">
+                    <div class="caixa-card-icone">🏦</div>
+
+                    <div>
+                        <span>VALOR DE ABERTURA</span>
+                        <strong>
+                            R$ {{ "%.2f"|format(caixa_atual.valor_abertura or 0) }}
+                        </strong>
+                    </div>
+                </div>
+
+
+                <div class="caixa-card">
+                    <div class="caixa-card-icone">💵</div>
+
+                    <div>
+                        <span>VENDAS DO DIA</span>
+                        <strong>
+                            R$ {{ "%.2f"|format(caixa_atual.total_vendas or 0) }}
+                        </strong>
+                    </div>
+                </div>
+
+
+                <div class="caixa-card">
+                    <div class="caixa-card-icone">💸</div>
+
+                    <div>
+                        <span>GASTOS DO DIA</span>
+                        <strong>
+                            R$ {{ "%.2f"|format(caixa_atual.total_gastos or 0) }}
+                        </strong>
+                    </div>
+                </div>
+
+
+                <div class="caixa-card destaque">
+                    <div class="caixa-card-icone">🧮</div>
+
+                    <div>
+                        <span>SALDO ESPERADO</span>
+                        <strong>
+                            R$ {{ "%.2f"|format(caixa_atual.saldo_esperado or 0) }}
+                        </strong>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- FECHAMENTO -->
+            <div class="caixa-painel">
+
+                <div class="caixa-painel-header">
+                    <div>
+                        <h2>🔒 Fechamento do caixa</h2>
+                        <p>Informe quanto foi contado fisicamente no caixa.</p>
+                    </div>
+                </div>
+
+
+                <div class="fechamento-grid">
+
+                    <div class="fechamento-resumo">
+
+                        <div class="linha-caixa">
+                            <span>Valor de abertura</span>
+                            <strong>
+                                R$ {{ "%.2f"|format(caixa_atual.valor_abertura or 0) }}
+                            </strong>
+                        </div>
+
+                        <div class="linha-caixa">
+                            <span>Total de vendas</span>
+                            <strong class="positivo">
+                                + R$ {{ "%.2f"|format(caixa_atual.total_vendas or 0) }}
+                            </strong>
+                        </div>
+
+                        <div class="linha-caixa">
+                            <span>Total de gastos</span>
+                            <strong class="negativo">
+                                - R$ {{ "%.2f"|format(caixa_atual.total_gastos or 0) }}
+                            </strong>
+                        </div>
+
+                        <div class="linha-caixa total">
+                            <span>Saldo esperado</span>
+                            <strong>
+                                R$ {{ "%.2f"|format(caixa_atual.saldo_esperado or 0) }}
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <form method="POST" class="form-fechamento">
+
+                        <input type="hidden" name="acao" value="fechar">
+
+                        <label for="valor_fechamento">
+                            💰 Dinheiro contado
+                        </label>
+
+                        <input
+                            type="number"
+                            id="valor_fechamento"
+                            name="valor_fechamento"
+                            step="0.01"
+                            min="0"
+                            placeholder="0,00"
+                            required
+                        >
+
+                        <small>
+                            Digite exatamente o valor encontrado no caixa.
+                        </small>
+
+                        <button type="submit" class="btn-fechar-caixa">
+                            🔒 FECHAR CAIXA
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+
+        {% else %}
+
+            <!-- CAIXA FECHADO -->
+            <div class="caixa-status fechado">
+
+                <div class="caixa-status-icone">
+                    🔒
+                </div>
+
+                <div class="caixa-status-info">
+                    <span>STATUS DO CAIXA</span>
+                    <strong>CAIXA FECHADO</strong>
+                    <small>
+                        O caixa não está em operação.
+                    </small>
+                </div>
+
+                <div class="caixa-status-acoes">
+                    <span class="status-fechado">● Fechado</span>
+                </div>
+
+            </div>
+
+
+            <!-- ABERTURA -->
+            <div class="caixa-painel">
+
+                <div class="caixa-painel-header">
+                    <div>
+                        <h2>🔓 Abrir novo caixa</h2>
+                        <p>Informe o valor disponível no início do expediente.</p>
+                    </div>
+                </div>
+
+
+                <form method="POST" class="form-abertura">
+
+                    <input type="hidden" name="acao" value="abrir">
+
+                    <div class="campo-caixa">
+
+                        <label for="valor_abertura">
+                            💰 Valor de abertura
+                        </label>
+
+                        <input
+                            type="number"
+                            id="valor_abertura"
+                            name="valor_abertura"
+                            step="0.01"
+                            min="0"
+                            placeholder="0,00"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button type="submit" class="btn-abrir-caixa">
+                        🔓 ABRIR CAIXA
+                    </button>
+
+                </form>
+
+            </div>
+
+        {% endif %}
+
+    {% else %}
+
+        <!-- PRIMEIRA ABERTURA -->
+        <div class="caixa-status fechado">
+
+            <div class="caixa-status-icone">
+                🔒
+            </div>
+
+            <div class="caixa-status-info">
+                <span>STATUS DO CAIXA</span>
+                <strong>CAIXA FECHADO</strong>
+                <small>
+                    Nenhum caixa foi aberto ainda.
+                </small>
+            </div>
+
+        </div>
+
+
+        <div class="caixa-painel">
+
+            <div class="caixa-painel-header">
+                <div>
+                    <h2>🔓 Primeira abertura</h2>
+                    <p>Informe o valor disponível para iniciar o caixa.</p>
+                </div>
+            </div>
+
+
+            <form method="POST" class="form-abertura">
+
+                <input type="hidden" name="acao" value="abrir">
+
+                <div class="campo-caixa">
+
+                    <label for="valor_abertura">
+                        💰 Valor de abertura
+                    </label>
+
+                    <input
+                        type="number"
+                        id="valor_abertura"
+                        name="valor_abertura"
+                        step="0.01"
+                        min="0"
+                        placeholder="0,00"
+                        required
+                    >
+
+                </div>
+
+
+                <button type="submit" class="btn-abrir-caixa">
+                    🔓 ABRIR CAIXA
+                </button>
+
+            </form>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         HISTÓRICO
+    ====================================================== -->
+
+    <div class="caixa-painel historico-caixa">
+
+        <div class="caixa-painel-header">
+
+            <div>
+                <h2>📋 Histórico de caixas</h2>
+                <p>Consulte os fechamentos realizados anteriormente.</p>
+            </div>
+
+        </div>
+
+
+        <div class="tabela-container">
+
+            <table class="tabela-caixa">
+
+                <thead>
+                    <tr>
+                        <th>Data abertura</th>
+                        <th>Abertura</th>
+                        <th>Fechamento</th>
+                        <th>Diferença</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for caixa in caixas %}
+
+                    <tr>
+
+                        <td>
+                            {{ caixa.data_abertura }}
+                        </td>
+
+                        <td>
+                            R$ {{ "%.2f"|format(caixa.valor_abertura or 0) }}
+                        </td>
+
+                        <td>
+                            {% if caixa.valor_fechamento is not none %}
+                                R$ {{ "%.2f"|format(caixa.valor_fechamento) }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td>
+
+                            {% if caixa.diferenca is not none %}
+
+                                {% if caixa.diferenca > 0 %}
+                                    <span class="diferenca-positiva">
+                                        + R$ {{ "%.2f"|format(caixa.diferenca) }}
+                                    </span>
+
+                                {% elif caixa.diferenca < 0 %}
+                                    <span class="diferenca-negativa">
+                                        R$ {{ "%.2f"|format(caixa.diferenca) }}
+                                    </span>
+
+                                {% else %}
+                                    <span class="diferenca-zero">
+                                        R$ 0,00
+                                    </span>
+                                {% endif %}
+
+                            {% else %}
+                                —
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            {% if caixa.status == "ABERTO" %}
+
+                                <span class="status-caixa aberto">
+                                    ABERTO
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-caixa fechado">
+                                    FECHADO
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="5" class="sem-registros">
+                            Nenhum registro de caixa encontrado.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+```
