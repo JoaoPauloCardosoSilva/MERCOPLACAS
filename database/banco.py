@@ -1,8 +1,20 @@
 import sqlite3
+import os
 from datetime import date
 from werkzeug.security import generate_password_hash, check_password_hash
 
-DB = "banco.db"
+
+# ==========================================================
+# LOCALIZAÇÃO DO BANCO
+# ==========================================================
+
+if os.environ.get("VERCEL"):
+    DB = "/tmp/banco.db"
+else:
+    DB = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "banco.db"
+    )
 
 
 # ==========================================================
